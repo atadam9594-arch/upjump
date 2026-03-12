@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UpJump</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700&display=swap');
+  :root { --bg:#07121f; --panel:rgba(7,18,31,.72); --line:rgba(255,255,255,.09); --ink:#eff8ff; --muted:#9bb3c6; --teal:#53f5d0; --coral:#ff8f6b; --gold:#ffd166; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { width:100%; height:100%; }
+  body {
+    display:grid; place-items:center; overflow:hidden; color:var(--ink); font-family:'Space Grotesk',sans-serif;
+    background:
+      radial-gradient(circle at 18% 18%, rgba(83,245,208,.15), transparent 28%),
+      radial-gradient(circle at 80% 14%, rgba(255,143,107,.14), transparent 24%),
+      linear-gradient(180deg, #030812 0%, #091523 45%, #0a1620 100%);
+  }
+  #gameWrapper {
+    position:relative; width:400px; height:640px; overflow:hidden; border-radius:28px;
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 36px 110px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  canvas { display:block; width:100%; height:100%; background:var(--bg); }
+  #hud, #overlay { position:absolute; inset:0; }
+  #hud { z-index:10; pointer-events:none; }
+  .card, #pauseBtn, #energyPanel, #missionPill, #banner, .overlay-card {
+    background:var(--panel); border:1px solid var(--line); backdrop-filter:blur(10px);
+  }
+  .cluster { position:absolute; top:16px; display:flex; gap:10px; }
+  #leftCluster { left:16px; }
+  #rightCluster { right:16px; }
+  .card { min-width:88px; border-radius:16px; padding:10px 12px; }
+  .label { display:block; font-size:10px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:6px; }
+  .value { font-size:28px; line-height:1; font-weight:700; }
+  #pauseBtn {
+    pointer-events:auto; min-width:50px; border-radius:16px; color:var(--ink); font:700 18px 'Space Grotesk',sans-serif;
+    cursor:pointer; padding:0 14px;
+  }
+  #energyPanel { position:absolute; left:16px; right:16px; top:92px; border-radius:16px; padding:10px 12px 12px; }
+  .row { display:flex; justify-content:space-between; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .track { width:100%; height:14px; border-radius:999px; overflow:hidden; background:rgba(255,255,255,.08); }
+  #energyFill { width:0%; height:100%; border-radius:inherit; background:linear-gradient(90deg, var(--teal), #8affc2 55%, var(--gold)); box-shadow:0 0 24px rgba(83,245,208,.4); transition:width .12s linear; }
+  #missionPill, #banner {
+    left:50%; transform:translateX(-50%); border-radius:999px; padding:8px 14px; text-transform:uppercase; text-align:center;
+  }
+  #missionPill { position:absolute; bottom:18px; max-width:calc(100% - 32px); font-size:11px; letter-spacing:.12em; color:#d8f7ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #banner {
+    position:absolute; top:138px; font-size:12px; font-weight:700; letter-spacing:.12em; color:#07121f;
+    background:linear-gradient(135deg, var(--teal), #d3ff8a); opacity:0; transition:opacity .15s linear;
+  }
+  #banner.show { opacity:1; }
+  #overlay {
+    z-index:20; display:flex; justify-content:center; align-items:center; padding:24px; background:rgba(3,8,18,.72); backdrop-filter:blur(10px);
+  }
+  .overlay-card { width:min(100%, 320px); border-radius:24px; padding:24px 22px 20px; text-align:center; }
+  .kicker { font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--teal); margin-bottom:10px; }
+  h1 { font:42px/1 'Bungee', cursive; letter-spacing:.04em; margin-bottom:12px; }
+  #overlayLead { color:#cfe2f2; font-size:14px; line-height:1.5; margin-bottom:18px; }
+  #overlayStats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px; }
+  .chip { border-radius:16px; padding:10px 8px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.06); }
+  .chip strong { display:block; font-size:18px; margin-bottom:4px; }
+  .chip span { display:block; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; }
+  #playBtn {
+    width:100%; border:0; border-radius:18px; padding:15px 16px; cursor:pointer; color:#07121f;
+    font:20px 'Bungee', cursive; letter-spacing:.08em; background:linear-gradient(135deg, var(--teal), var(--gold));
+  }
+  .controls { margin-top:16px; font-size:12px; line-height:1.65; color:var(--muted); }
+</style>
+</head>
+<body>
+<div id="gameWrapper">
+  <canvas id="gameCanvas" width="400" height="640"></canvas>
+  <div id="hud">
+    <div id="leftCluster" class="cluster">
+      <div class="card"><span class="label">Skor</span><strong id="scoreDisplay" class="value">0</strong></div>
+      <div class="card"><span class="label">En iyi</span><strong id="bestDisplay" class="value">0</strong></div>
+    </div>
+    <div id="rightCluster" class="cluster">
+      <div class="card"><span class="label">Zincir</span><strong id="comboDisplay" class="value">x0</strong></div>
+      <button id="pauseBtn" type="button">II</button>
+    </div>
+    <div id="energyPanel">
+      <div class="row"><span>Enerji</span><span id="energyLabel">0%</span></div>
+      <div class="track"><div id="energyFill"></div></div>
+    </div>
+    <div id="banner"></div>
+    <div id="missionPill"></div>
+  </div>
+  <div id="overlay">
+    <div class="overlay-card">
+      <div id="overlayKicker" class="kicker">Arcade Climb</div>
+      <h1 id="overlayTitle">UPJUMP</h1>
+      <p id="overlayLead">Yildiz topla, enerjiyi 100 yap ve Space ile Nova Dash ac.</p>
+      <div id="overlayStats"></div>
+      <button id="playBtn" type="button">BASLA</button>
+      <p class="controls">Sol/Sag veya ekranin kenarlari ile yon ver.<br>Space: Nova Dash, P: Duraklat, F: Tam ekran.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height, STEP = 1000 / 60, TAU = Math.PI * 2;
+const PT = { N:'normal', M:'moving', S:'spring', C:'crumble', P:'phase' };
+const MODES = { MENU:'menu', PLAY:'playing', PAUSE:'paused', OVER:'game_over' };
+const STYLE = {
+  normal:['#53f5d0','#b8fff2','rgba(83,245,208,.35)'],
+  moving:['#7cc7ff','#e0f4ff','rgba(124,199,255,.32)'],
+  spring:['#ff8f6b','#ffd3c4','rgba(255,143,107,.34)'],
+  crumble:['#b5835a','#f4d2ae','rgba(255,209,102,.24)'],
+  phase:['#c67dff','#f0d3ff','rgba(198,125,255,.3)'],
+};
+const dom = {
+  wrapper: document.getElementById('gameWrapper'),
+  score: document.getElementById('scoreDisplay'),
+  best: document.getElementById('bestDisplay'),
+  combo: document.getElementById('comboDisplay'),
+  energyFill: document.getElementById('energyFill'),
+  energyLabel: document.getElementById('energyLabel'),
+  mission: document.getElementById('missionPill'),
+  banner: document.getElementById('banner'),
+  pauseBtn: document.getElementById('pauseBtn'),
+  overlay: document.getElementById('overlay'),
+  overlayKicker: document.getElementById('overlayKicker'),
+  overlayTitle: document.getElementById('overlayTitle'),
+  overlayLead: document.getElementById('overlayLead'),
+  overlayStats: document.getElementById('overlayStats'),
+  playBtn: document.getElementById('playBtn'),
+};
+const input = { left:false, right:false, pointerX:null, boost:false };
+let game, bestScore = loadBest(), last = 0, acc = 0, rafId = 0;
+
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function rand(a, b) { return a + Math.random() * (b - a); }
+function loadBest() { try { return Number(localStorage.getItem('upjump-best')) || 0; } catch { return 0; } }
+function saveBest(v) { try { localStorage.setItem('upjump-best', String(v)); } catch {} }
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+}
+function drawStar(x, y, outer, inner) {
+  let rot = Math.PI / 2 * 3, step = Math.PI / 5;
+  ctx.beginPath(); ctx.moveTo(x, y - outer);
+  for (let i = 0; i < 5; i++) {
+    ctx.lineTo(x + Math.cos(rot) * outer, y + Math.sin(rot) * outer); rot += step;
+    ctx.lineTo(x + Math.cos(rot) * inner, y + Math.sin(rot) * inner); rot += step;
+  }
+  ctx.closePath();
+}
+function inter(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+function statsHtml(items) { return items.map(i => `<div class="chip"><strong>${i[0]}</strong><span>${i[1]}</span></div>`).join(''); }
+
+function createMission() {
+  const pool = [
+    { type:'collect', target:4, progress:0, label:'4 yildiz topla' },
+    { type:'spring', target:3, progress:0, label:'3 yayli platforma bas' },
+    { type:'nova', target:1, progress:0, label:'Nova Dash ile 1 drone kir' },
+  ];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function createGame(mode = MODES.MENU) {
+  const g = {
+    mode, frame:0, camY:0, genY:H, score:0, dist:0, bonus:0, combo:0, energy:0, banner:'', bannerTimer:0,
+    endReason:'fall', mission:createMission(), platforms:[], stars:[], drones:[], particles:[], texts:[],
+    player:{ x:W / 2 - 18, y:H - 150, w:36, h:40, vx:0, vy:-14, face:1, boost:0, shield:0, squash:1, trail:[] }
+  };
+  g.platforms.push({ x:W / 2 - 39, y:H - 92, w:78, h:14, type:PT.N, vx:0, broken:false, alpha:1, phase:0, visible:1 });
+  for (let y = H - 170; y > -2200; y -= 84) spawnLayer(g, y);
+  g.genY = -2200;
+  return g;
+}
+
+function spawnLayer(g, y) {
+  const d = clamp(-y / 4200, 0, 1.5), r = Math.random();
+  let type = PT.N;
+  if (r < .14 + d * .06) type = PT.M;
+  else if (r < .24 + d * .04) type = PT.S;
+  else if (r < .34 + d * .06) type = PT.C;
+  else if (r < .42 + d * .05) type = PT.P;
+  const w = type === PT.S ? 74 : type === PT.P ? 66 : 78;
+  const p = { x:rand(18, W - 18 - w), y, w, h:14, type, vx:type === PT.M ? (Math.random() > .5 ? 1.4 : -1.4) : 0, broken:false, alpha:1, phase:rand(0, TAU), visible:1 };
+  g.platforms.push(p);
+  if (Math.random() < (type === PT.S ? .72 : .38 + d * .08)) g.stars.push({ x:p.x + p.w / 2, y:y - rand(18, 28), kind:Math.random() < .14 + d * .06 ? 'orb' : 'star', t:rand(0, TAU), dead:false });
+  if (y < -240 && Math.random() < .08 + d * .08) g.drones.push({ x:clamp(p.x + rand(-28, 28), 18, W - 52), y:y - rand(46, 70), w:34, h:22, vx:Math.random() > .5 ? 1.55 : -1.55, phase:rand(0, TAU), dead:false });
+}
+
+function addBurst(g, x, y, color, n) {
+  for (let i = 0; i < n; i++) g.particles.push({ x, y, vx:rand(-2.6, 2.6), vy:rand(-4.4, -.6), life:rand(18, 34), max:0, size:rand(2, 5), color, grav:.12 });
+  for (let i = g.particles.length - n; i < g.particles.length; i++) g.particles[i].max = g.particles[i].life;
+}
+function addText(g, x, y, text, color) { g.texts.push({ x, y, text, color, life:42 }); }
+function setBanner(g, text) { g.banner = text; g.bannerTimer = 90; }
+function missionHit(g, type) {
+  if (g.mission.type !== type) return;
+  g.mission.progress += 1;
+  if (g.mission.progress >= g.mission.target) {
+    g.bonus += 180; g.energy = clamp(g.energy + 36, 0, 100); setBanner(g, 'Hedef Tamam +180'); g.mission = createMission();
+  }
+}
+function totalScore(g) { g.score = g.dist + g.bonus; if (g.score > bestScore) { bestScore = g.score; saveBest(bestScore); } }
+function solid(p) { return !p.broken && (p.type !== PT.P || p.visible > .4); }
+function jumpPower(type) { return type === PT.S ? 22 : type === PT.M ? 15.8 : type === PT.P ? 16.4 : 14.6; }
+
+function moveIntent() {
+  if (input.left && !input.right) return -1;
+  if (input.right && !input.left) return 1;
+  if (input.pointerX == null) return 0;
+  const rect = canvas.getBoundingClientRect(), x = input.pointerX - rect.left;
+  if (x < rect.width * .42) return -1;
+  if (x > rect.width * .58) return 1;
+  return 0;
+}
+
+function tryNova(g) {
+  if (g.energy < 100 || g.player.boost > 0) return false;
+  g.energy = 0; g.player.boost = 54; g.player.shield = 68; g.player.vy = -23.5; g.player.squash = .62;
+  g.combo = Math.min(g.combo + 2, 9); setBanner(g, 'Nova Dash'); addBurst(g, g.player.x + 18, g.player.y + 20, '#ffd166', 16); return true;
+}
+
+function updateGame(g) {
+  if (g.mode !== MODES.PLAY) return;
+  g.frame++;
+  if (input.boost) { tryNova(g); input.boost = false; }
+  const pl = g.player, dir = moveIntent(), target = dir * 6.2;
+  pl.vx = lerp(pl.vx, target, dir === 0 ? .14 : .24); pl.x += pl.vx; if (dir) pl.face = dir;
+  if (pl.x + pl.w < -4) pl.x = W + 4; if (pl.x > W + 4) pl.x = -pl.w - 4;
+  if (pl.boost > 0) { pl.boost--; pl.shield = Math.max(pl.shield, pl.boost); pl.vy += .18; pl.vy = Math.min(pl.vy, -10.8); } else pl.vy += .47;
+  pl.y += pl.vy; pl.squash = lerp(pl.squash, 1, .22); if (pl.shield > 0) pl.shield--;
+  pl.trail.unshift({ x:pl.x + pl.w / 2, y:pl.y + pl.h / 2, r:pl.boost > 0 ? 11 : 7, a:pl.boost > 0 ? .55 : .28 });
+  if (pl.trail.length > 10) pl.trail.pop(); pl.trail.forEach(t => { t.a *= .82; t.r *= .97; });
+  const targetCam = pl.y - H * .42; if (targetCam < g.camY) g.camY = lerp(g.camY, targetCam, .42);
+  while (g.genY > g.camY - 120) { spawnLayer(g, g.genY); g.genY -= rand(72, 104) + Math.min(52, g.score / 26); }
+
+  g.platforms.forEach(p => {
+    if (p.type === PT.M) { p.x += p.vx; if (p.x < 16 || p.x + p.w > W - 16) p.vx *= -1; }
+    if (p.type === PT.P) { p.phase += .05; p.visible = .18 + ((Math.sin(p.phase) + 1) / 2) * .82; p.alpha = .18 + p.visible * .82; }
+    if (p.broken) p.alpha = clamp(p.alpha - .06, 0, 1);
+  });
+  g.stars.forEach(s => s.t += s.kind === 'orb' ? .08 : .12);
+  g.drones.forEach(d => { d.x += d.vx; d.phase += .12; if (d.x < 18 || d.x + d.w > W - 18) d.vx *= -1; });
+  g.particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.grav; p.life--; });
+  g.texts.forEach(t => { t.y -= 1.05; t.life--; });
+  g.platforms = g.platforms.filter(p => !(p.broken && p.alpha <= 0) && p.y - g.camY < H + 120);
+  g.stars = g.stars.filter(s => !s.dead && s.y - g.camY < H + 90);
+  g.drones = g.drones.filter(d => !d.dead && d.y - g.camY < H + 120);
+  g.particles = g.particles.filter(p => p.life > 0);
+  g.texts = g.texts.filter(t => t.life > 0);
+
+  if (pl.vy > 0) {
+    for (const p of g.platforms) {
+      if (!solid(p)) continue;
+      if (pl.x + pl.w > p.x && pl.x < p.x + p.w && pl.y + pl.h > p.y && pl.y + pl.h < p.y + p.h + 12 && pl.y + pl.h - pl.vy <= p.y + p.h) {
+        pl.vy = -jumpPower(p.type); pl.squash = .78;
+        const gap = g.frame - (g.lastBounce || -999); g.combo = gap < 84 ? Math.min(g.combo + 1, 9) : 1; g.lastBounce = g.frame;
+        let energy = 5;
+        if (p.type === PT.S) { g.bonus += 12; energy = 14; missionHit(g, 'spring'); setBanner(g, 'Spring Launch'); }
+        else if (p.type === PT.M) { g.bonus += 8; energy = 9; }
+        else if (p.type === PT.P) { g.bonus += 10; energy = 11; }
+        else if (p.type === PT.C) energy = 6;
+        g.energy = clamp(g.energy + energy, 0, 100); addBurst(g, p.x + p.w / 2, p.y, STYLE[p.type][0], 6); if (p.type === PT.C) p.broken = true;
+        break;
+      }
+    }
+  }
+
+  const cx = pl.x + pl.w / 2, cy = pl.y + pl.h / 2;
+  g.stars.forEach(s => {
+    const reach = s.kind === 'orb' ? 28 : 24;
+    if (!s.dead && Math.abs(cx - s.x) < reach && Math.abs(cy - s.y) < reach) {
+      s.dead = true;
+      const bonus = (s.kind === 'orb' ? 70 : 25) + g.combo * 5;
+      g.bonus += bonus; g.energy = clamp(g.energy + (s.kind === 'orb' ? 44 : 18), 0, 100);
+      addBurst(g, s.x, s.y, s.kind === 'orb' ? '#53f5d0' : '#ffd166', s.kind === 'orb' ? 10 : 7);
+      addText(g, s.x, s.y - 12, `+${bonus}`, s.kind === 'orb' ? '#53f5d0' : '#ffd166'); if (s.kind === 'star') missionHit(g, 'collect');
+    }
+  });
+  g.drones.forEach(d => {
+    if (!d.dead && inter(pl, d)) {
+      if (pl.shield > 0 || pl.boost > 0) {
+        d.dead = true; const bonus = 140 + g.combo * 10; g.bonus += bonus; addBurst(g, d.x + d.w / 2, d.y + d.h / 2, '#ff8f6b', 14); addText(g, d.x + d.w / 2, d.y - 10, `+${bonus}`, '#ffcfb5'); missionHit(g, 'nova');
+      } else { g.mode = MODES.OVER; g.endReason = 'drone'; if (g.score >= bestScore) saveBest(bestScore); updateOverlay(); }
+    }
+  });
+  if (g.frame - (g.lastBounce || -999) > 120) g.combo = 0;
+  if (pl.y - g.camY > H + 80) { g.mode = MODES.OVER; g.endReason = 'fall'; if (g.score >= bestScore) saveBest(bestScore); updateOverlay(); }
+  g.dist = Math.max(g.dist, Math.floor(-g.camY / 10)); totalScore(g); if (g.bannerTimer > 0) g.bannerTimer--;
+}
+
+function drawBackground(g) {
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, '#08111d'); sky.addColorStop(.5, '#0e253b'); sky.addColorStop(1, '#07121f');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+  let glow = ctx.createRadialGradient(W * .22, 140, 0, W * .22, 140, 220);
+  glow.addColorStop(0, 'rgba(83,245,208,.18)'); glow.addColorStop(1, 'transparent'); ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+  glow = ctx.createRadialGradient(W * .8, 180, 0, W * .8, 180, 210);
+  glow.addColorStop(0, 'rgba(255,143,107,.13)'); glow.addColorStop(1, 'transparent'); ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < 28; i++) {
+    const x = (i * 83 + 40) % W, y = ((i * 113) - g.camY * (.08 + (i % 5) * .01)) % (H + 100), sy = (y + H + 100) % (H + 100) - 50;
+    ctx.fillStyle = i % 5 === 0 ? 'rgba(255,209,102,.85)' : 'rgba(216,247,255,.72)'; ctx.beginPath(); ctx.arc(x, sy, i % 5 === 0 ? 2.2 : 1.2, 0, TAU); ctx.fill();
+  }
+  ctx.fillStyle = '#05111c'; ctx.beginPath(); ctx.moveTo(0, H);
+  for (let x = 0; x <= W; x += 40) ctx.lineTo(x, H - 92 + Math.sin((x / W) * Math.PI * 3 + g.camY * .003) * 12);
+  ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+}
+
+function drawGame(g) {
+  drawBackground(g);
+  g.platforms.forEach(p => {
+    const sy = p.y - g.camY; if (sy < -28 || sy > H + 28) return;
+    const [fill, edge, glow] = STYLE[p.type]; ctx.save(); ctx.globalAlpha = p.alpha; ctx.shadowColor = glow; ctx.shadowBlur = p.type === PT.P ? 18 : 14;
+    roundRect(p.x, sy, p.w, p.h, 8); const grad = ctx.createLinearGradient(p.x, sy, p.x, sy + p.h); grad.addColorStop(0, '#ffffff'); grad.addColorStop(.12, edge); grad.addColorStop(.92, fill); ctx.fillStyle = grad; ctx.fill();
+    ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(255,255,255,.22)'; roundRect(p.x + 5, sy + 2, p.w - 10, 4, 4); ctx.fill();
+    if (p.type === PT.M) { ctx.strokeStyle = 'rgba(255,255,255,.46)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x + 12, sy + 7); ctx.lineTo(p.x + 24, sy + 7); ctx.moveTo(p.x + p.w - 12, sy + 7); ctx.lineTo(p.x + p.w - 24, sy + 7); ctx.stroke(); }
+    if (p.type === PT.S) { ctx.fillStyle = '#fff1e8'; for (let i = 0; i < 3; i++) ctx.fillRect(p.x + p.w / 2 - 8 + i * 6, sy - 10, 3, 10); ctx.beginPath(); ctx.arc(p.x + p.w / 2, sy - 11, 7, 0, TAU); ctx.fillStyle = '#ffcfb5'; ctx.fill(); }
+    if (p.type === PT.C) { ctx.strokeStyle = 'rgba(58,34,8,.55)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x + 12, sy + 4); ctx.lineTo(p.x + 26, sy + 10); ctx.lineTo(p.x + 34, sy + 5); ctx.moveTo(p.x + p.w - 12, sy + 4); ctx.lineTo(p.x + p.w - 26, sy + 10); ctx.lineTo(p.x + p.w - 38, sy + 5); ctx.stroke(); }
+    if (p.type === PT.P) { ctx.strokeStyle = 'rgba(255,255,255,.44)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p.x + p.w / 2, sy + 7, p.w * .35, 0, TAU); ctx.stroke(); }
+    ctx.restore();
+  });
+  g.stars.forEach(s => {
+    if (s.dead) return; const sy = s.y + Math.sin(s.t) * 4 - g.camY; if (sy < -24 || sy > H + 24) return; ctx.save(); ctx.translate(s.x, sy);
+    if (s.kind === 'orb') {
+      const grad = ctx.createRadialGradient(-3, -4, 2, 0, 0, 14); grad.addColorStop(0, '#fff'); grad.addColorStop(.25, '#b7fff0'); grad.addColorStop(1, '#53f5d0');
+      ctx.shadowColor = '#53f5d0'; ctx.shadowBlur = 18; ctx.beginPath(); ctx.arc(0, 0, 11, 0, TAU); ctx.fillStyle = grad; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.72)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 15, 0, TAU); ctx.stroke();
+    } else { ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 18; drawStar(0, 0, 10, 4.2); ctx.fillStyle = '#ffd166'; ctx.fill(); ctx.fillStyle = '#fff7da'; drawStar(0, -1, 5, 2.1); ctx.fill(); }
+    ctx.restore();
+  });
+  g.drones.forEach(d => {
+    if (d.dead) return; const sy = d.y - g.camY; if (sy < -36 || sy > H + 36) return; ctx.save(); ctx.translate(d.x + d.w / 2, sy + d.h / 2);
+    const wing = Math.sin(d.phase) * 6; ctx.fillStyle = 'rgba(83,245,208,.18)'; ctx.beginPath(); ctx.ellipse(-14, 0, 10, 5 + Math.abs(wing), 0, 0, TAU); ctx.ellipse(14, 0, 10, 5 + Math.abs(wing), 0, 0, TAU); ctx.fill();
+    ctx.shadowColor = 'rgba(255,143,107,.45)'; ctx.shadowBlur = 16; const grad = ctx.createLinearGradient(0, -10, 0, 10); grad.addColorStop(0, '#ffcfb5'); grad.addColorStop(1, '#ff8f6b'); ctx.fillStyle = grad; roundRect(-16, -10, 32, 20, 10); ctx.fill();
+    ctx.shadowBlur = 0; ctx.fillStyle = '#07121f'; ctx.beginPath(); ctx.arc(0, 1, 7, 0, TAU); ctx.fill(); ctx.fillStyle = '#53f5d0'; ctx.beginPath(); ctx.arc(0, 1, 3, 0, TAU); ctx.fill(); ctx.restore();
+  });
+  g.particles.forEach(p => { const sy = p.y - g.camY; if (sy < -20 || sy > H + 20) return; ctx.save(); ctx.globalAlpha = clamp(p.life / p.max, 0, 1); ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 12; ctx.beginPath(); ctx.arc(p.x, sy, p.size, 0, TAU); ctx.fill(); ctx.restore(); });
+  g.player.trail.slice().reverse().forEach(t => { ctx.save(); ctx.globalAlpha = t.a; ctx.fillStyle = g.player.boost > 0 ? '#ffd166' : '#53f5d0'; ctx.beginPath(); ctx.arc(t.x, t.y - g.camY, t.r, 0, TAU); ctx.fill(); ctx.restore(); });
+  const pl = g.player, sx = pl.x + pl.w / 2, sy = pl.y - g.camY + pl.h / 2; ctx.save(); ctx.translate(sx, sy); ctx.scale(pl.face, pl.squash);
+  if (pl.shield > 0) { ctx.strokeStyle = `rgba(255,209,102,${.35 + Math.sin(pl.shield * .3) * .15})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 24 + Math.sin(pl.shield * .2) * 2, 0, TAU); ctx.stroke(); }
+  ctx.shadowColor = pl.boost > 0 ? '#ffd166' : '#53f5d0'; ctx.shadowBlur = pl.boost > 0 ? 26 : 18;
+  let grad = ctx.createRadialGradient(-4, -8, 4, 0, 0, 24); grad.addColorStop(0, '#fdfefe'); grad.addColorStop(.32, pl.boost > 0 ? '#ffe7ad' : '#b7fff0'); grad.addColorStop(1, pl.boost > 0 ? '#ff8f6b' : '#53f5d0'); ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(0, 0, 18, 0, TAU); ctx.fill();
+  ctx.shadowBlur = 0; ctx.fillStyle = '#07121f'; ctx.beginPath(); ctx.arc(6, -4, 5, 0, TAU); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(7, -5, 2.2, 0, TAU); ctx.fill(); ctx.strokeStyle = '#ecfeff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-4, -18); ctx.lineTo(-2, -28); ctx.lineTo(7, -24); ctx.stroke(); ctx.fillStyle = '#07121f'; ctx.fillRect(-10, 10, 8, 2.5); ctx.fillRect(2, 10, 8, 2.5); ctx.restore();
+  g.texts.forEach(t => { const a = clamp(t.life / 42, 0, 1); if (!a) return; ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = t.color; ctx.font = '700 14px "Space Grotesk", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(t.text, t.x, t.y - g.camY); ctx.restore(); });
+  if (g.mode === MODES.PAUSE) { ctx.fillStyle = 'rgba(2,8,14,.38)'; ctx.fillRect(0, 0, W, H); }
+}
+
+function syncHud() {
+  dom.score.textContent = game.score; dom.best.textContent = bestScore; dom.combo.textContent = `x${game.combo}`;
+  dom.energyFill.style.width = `${Math.round(game.energy)}%`; dom.energyLabel.textContent = `${Math.round(game.energy)}%`;
+  dom.mission.textContent = `${game.mission.label} (${game.mission.progress}/${game.mission.target})`;
+  dom.banner.textContent = game.banner; dom.banner.classList.toggle('show', game.bannerTimer > 0); dom.pauseBtn.textContent = game.mode === MODES.PLAY ? 'II' : '>';
+}
+
+function updateOverlay() {
+  if (game.mode === MODES.PLAY) { dom.overlay.style.display = 'none'; return; }
+  dom.overlay.style.display = 'flex';
+  if (game.mode === MODES.MENU) {
+    dom.overlayKicker.textContent = 'Arcade Climb'; dom.overlayTitle.textContent = 'UPJUMP';
+    dom.overlayLead.textContent = 'Yildiz topla, enerjiyi 100 yap ve Space ile Nova Dash ac. Drone\'lari boost sirasinda parcalayabilirsin.';
+    dom.playBtn.textContent = 'BASLA'; dom.overlayStats.innerHTML = statsHtml([[bestScore, 'En iyi'], ['100%', 'Nova'], ['3', 'Gorev']]);
+  } else if (game.mode === MODES.PAUSE) {
+    dom.overlayKicker.textContent = 'Durakladi'; dom.overlayTitle.textContent = 'MOLA';
+    dom.overlayLead.textContent = 'P, Enter veya buton ile devam et. Enerji doluysa Space Nova Dash kullanir.';
+    dom.playBtn.textContent = 'DEVAM'; dom.overlayStats.innerHTML = statsHtml([[game.score, 'Skor'], [`${Math.round(game.energy)}%`, 'Enerji'], [`x${game.combo}`, 'Zincir']]);
+  } else {
+    dom.overlayKicker.textContent = game.endReason === 'drone' ? 'Drone carpisti' : 'Bosluga dustun'; dom.overlayTitle.textContent = 'TEKRAR';
+    dom.overlayLead.textContent = 'Yukselis bitti. Daha agresif oyna, yildiz topla ve Nova Dash icin enerjiyi sakla.';
+    dom.playBtn.textContent = 'YENIDEN'; dom.overlayStats.innerHTML = statsHtml([[game.score, 'Skor'], [bestScore, 'En iyi'], [`${game.mission.progress}/${game.mission.target}`, 'Gorev']]);
+  }
+}
+
+function fit() {
+  const s = Math.min((window.innerWidth - 24) / W, (window.innerHeight - 24) / H);
+  const scale = Math.max(.42, Math.min(1.6, s));
+  dom.wrapper.style.width = `${Math.round(W * scale)}px`;
+  dom.wrapper.style.height = `${Math.round(H * scale)}px`;
+}
+function render() { drawGame(game); syncHud(); }
+function startGame() { game = createGame(MODES.PLAY); render(); updateOverlay(); }
+function openMenu() { game = createGame(MODES.MENU); render(); updateOverlay(); }
+function primaryAction() { if (game.mode === MODES.MENU || game.mode === MODES.OVER) startGame(); else if (game.mode === MODES.PAUSE) { game.mode = MODES.PLAY; updateOverlay(); } }
+function togglePause() { if (game.mode === MODES.PLAY) game.mode = MODES.PAUSE; else if (game.mode === MODES.PAUSE) game.mode = MODES.PLAY; else return; updateOverlay(); render(); }
+async function toggleFullscreen() { try { if (document.fullscreenElement) await document.exitFullscreen(); else await dom.wrapper.requestFullscreen(); } catch {} }
+function step(frames = 1) { for (let i = 0; i < frames; i++) updateGame(game); render(); }
+function loop(ts) { if (!last) last = ts; acc += Math.min(32, ts - last || STEP); last = ts; while (acc >= STEP) { updateGame(game); acc -= STEP; } render(); rafId = requestAnimationFrame(loop); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') input.left = true;
+  if (e.key === 'ArrowRight') input.right = true;
+  if ((e.code === 'Space' || e.key === ' ') && !e.repeat) { if (game.mode === MODES.PLAY) input.boost = true; e.preventDefault(); }
+  if (e.key === 'Enter' && !e.repeat) primaryAction();
+  if ((e.key === 'p' || e.key === 'P') && !e.repeat) togglePause();
+  if ((e.key === 'f' || e.key === 'F') && !e.repeat) toggleFullscreen();
+});
+document.addEventListener('keyup', e => { if (e.key === 'ArrowLeft') input.left = false; if (e.key === 'ArrowRight') input.right = false; });
+function setPointer(e) { const p = e.touches ? e.touches[0] : e; if (p) input.pointerX = p.clientX; }
+canvas.addEventListener('pointerdown', e => { if (game.mode === MODES.PLAY) setPointer(e); });
+canvas.addEventListener('pointermove', e => { if (input.pointerX != null) setPointer(e); });
+window.addEventListener('pointerup', () => { input.pointerX = null; });
+canvas.addEventListener('touchstart', e => { if (game.mode === MODES.PLAY) setPointer(e); }, { passive:true });
+canvas.addEventListener('touchmove', e => setPointer(e), { passive:true });
+canvas.addEventListener('touchend', () => { input.pointerX = null; }, { passive:true });
+dom.playBtn.addEventListener('click', primaryAction); dom.pauseBtn.addEventListener('click', togglePause);
+window.addEventListener('resize', fit); document.addEventListener('fullscreenchange', fit);
+
+window.render_game_to_text = () => JSON.stringify({
+  mode: game.mode,
+  coordinates: 'origin top-left; x right; y down; screenY = worldY - camY',
+  player: { x:Math.round(game.player.x), y:Math.round(game.player.y), screenY:Math.round(game.player.y - game.camY), vx:+game.player.vx.toFixed(2), vy:+game.player.vy.toFixed(2), boost:game.player.boost, shield:game.player.shield },
+  hud: { score:game.score, best:bestScore, combo:game.combo, energy:Math.round(game.energy), mission:`${game.mission.label} (${game.mission.progress}/${game.mission.target})` },
+  platforms: game.platforms.filter(p => p.y - game.camY > -40 && p.y - game.camY < H + 40).slice(0, 12).map(p => ({ type:p.type, x:Math.round(p.x), y:Math.round(p.y), screenY:Math.round(p.y - game.camY), solid:solid(p) })),
+  pickups: game.stars.filter(s => s.y - game.camY > -40 && s.y - game.camY < H + 40).slice(0, 8).map(s => ({ kind:s.kind, x:Math.round(s.x), y:Math.round(s.y), screenY:Math.round(s.y - game.camY) })),
+  hazards: game.drones.filter(d => d.y - game.camY > -60 && d.y - game.camY < H + 40).slice(0, 6).map(d => ({ x:Math.round(d.x), y:Math.round(d.y), screenY:Math.round(d.y - game.camY) })),
+  overlay: { visible:dom.overlay.style.display !== 'none', title:dom.overlayTitle.textContent, button:dom.playBtn.textContent }
+});
+window.advanceTime = ms => step(Math.max(1, Math.round(ms / STEP)));
+window.startGame = startGame;
+
+fit(); openMenu(); rafId = requestAnimationFrame(loop);
+</script>
+</body>
+</html>
