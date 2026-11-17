@@ -2,7 +2,9 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="UpJump — Brego Games Originals. Collect stars, climb platforms and unleash Nova Dash. Play on mobile and desktop.">
+<meta name="theme-color" content="#07121f">
 <title>UpJump</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700&display=swap');
@@ -21,7 +23,33 @@
     border:1px solid rgba(255,255,255,.08);
     box-shadow:0 36px 110px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.06);
   }
-  canvas { display:block; width:100%; height:100%; background:var(--bg); }
+  canvas { display:block; width:100%; height:100%; background:var(--bg); touch-action:none; }
+  html, body { overscroll-behavior:none; }
+  [hidden] { display:none !important; }
+  #novaBtn {
+    display:none;position:absolute;right:16px;bottom:73px;z-index:12;
+    width:94px;height:64px;align-items:center;justify-content:center;
+    padding:10px;border-radius:18px;border:2px solid #7ce9bf;
+    color:#072c25;background:linear-gradient(140deg,#52f2d1,#ffd166);
+    font:800 15px 'Space Grotesk',sans-serif;
+    box-shadow:0 7px 25px #0007;touch-action:manipulation;
+    cursor:pointer;pointer-events:auto;
+  }
+  #novaBtn:disabled { opacity:.56; background:#243f4a; color:#d3e6ed;cursor:default; }
+  #novaBtn:focus-visible, #overlayMenuBtn:focus-visible { outline:3px solid var(--gold);outline-offset:3px; }
+  @media (pointer:coarse), (max-width:480px) { #novaBtn:not([hidden]) {display:flex} }
+  #overlayMenuBtn {
+    width:100%;margin-top:10px;padding:12px 14px;border-radius:14px;
+    border:1px solid #7593b3;background:#182e43;color:#e8f7ff;
+    font:700 14px 'Space Grotesk',sans-serif;cursor:pointer;
+  }
+  @media(max-width:480px) {
+    #gameWrapper {border-radius:18px}
+    .cluster {top:max(12px,env(safe-area-inset-top));}
+    .card {min-width:72px;padding:8px 10px}
+    .value {font-size:23px}
+    #energyPanel {top:80px}
+  }
   #hud, #overlay { position:absolute; inset:0; }
   #hud { z-index:10; pointer-events:none; }
   .card, #pauseBtn, #energyPanel, #missionPill, #banner, .overlay-card {
@@ -78,13 +106,14 @@
     </div>
     <div id="rightCluster" class="cluster">
       <div class="card"><span class="label">Zincir</span><strong id="comboDisplay" class="value">x0</strong></div>
-      <button id="pauseBtn" type="button">II</button>
+      <button id="pauseBtn" type="button" aria-label="Oyunu duraklat">II</button>
     </div>
     <div id="energyPanel">
       <div class="row"><span>Enerji</span><span id="energyLabel">0%</span></div>
       <div class="track"><div id="energyFill"></div></div>
     </div>
     <div id="banner"></div>
+    <button id="novaBtn" type="button" aria-label="Nova Dash kullan" disabled hidden>⚡ NOVA</button>
     <div id="missionPill"></div>
   </div>
   <div id="overlay">
@@ -94,6 +123,7 @@
       <p id="overlayLead">Yildiz topla, enerjiyi 100 yap ve Space ile Nova Dash ac.</p>
       <div id="overlayStats"></div>
       <button id="playBtn" type="button">BASLA</button>
+      <button id="overlayMenuBtn" type="button" hidden>☰ Ana Menü</button>
       <p class="controls">Sol/Sag veya ekranin kenarlari ile yon ver.<br>Space: Nova Dash, P: Duraklat, F: Tam ekran.</p>
     </div>
   </div>
