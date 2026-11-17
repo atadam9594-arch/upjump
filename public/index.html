@@ -36,8 +36,26 @@
     cursor:pointer;pointer-events:auto;
   }
   #novaBtn:disabled { opacity:.56; background:#243f4a; color:#d3e6ed;cursor:default; }
+  #soundBtn {
+    position:absolute;right:16px;bottom:148px;z-index:12;
+    width:40px;height:40px;border-radius:13px;border:1px solid #608e9e;
+    color:#f0fcff;background:#143044d9;font:21px system-ui;cursor:pointer;pointer-events:auto;
+  }
+  #mobileMoveControls {position:absolute;left:14px;bottom:76px;z-index:12;gap:9px;display:none;pointer-events:auto;}
+  #mobileMoveControls button {
+    width:58px;height:58px;border:2px solid #62c7be;border-radius:17px;
+    color:#e9ffff;background:#123340d9;font:800 24px system-ui;cursor:pointer;
+    user-select:none;touch-action:none;
+  }
+  #mobileMoveControls button:active {background:#276c6f}
+  #mobileMoveControls button:focus-visible, #soundBtn:focus-visible {
+    outline:3px solid var(--gold);outline-offset:3px;
+  }
   #novaBtn:focus-visible, #overlayMenuBtn:focus-visible { outline:3px solid var(--gold);outline-offset:3px; }
-  @media (pointer:coarse), (max-width:480px) { #novaBtn:not([hidden]) {display:flex} }
+  @media (pointer:coarse), (max-width:480px) {
+    #novaBtn:not([hidden]) {display:flex}
+    #mobileMoveControls:not([hidden]) {display:flex}
+  }
   #overlayMenuBtn {
     width:100%;margin-top:10px;padding:12px 14px;border-radius:14px;
     border:1px solid #7593b3;background:#182e43;color:#e8f7ff;
@@ -114,6 +132,11 @@
     </div>
     <div id="banner"></div>
     <button id="novaBtn" type="button" aria-label="Nova Dash kullan" disabled hidden>⚡ NOVA</button>
+    <button id="soundBtn" type="button" aria-label="Sesi kapat" aria-pressed="true" hidden>🔊</button>
+    <div id="mobileMoveControls" hidden>
+      <button id="mobileLeftBtn" type="button" aria-label="Sola git">◀</button>
+      <button id="mobileRightBtn" type="button" aria-label="Sağa git">▶</button>
+    </div>
     <div id="missionPill"></div>
   </div>
   <div id="overlay">
