@@ -152,6 +152,8 @@ const dom = {
   mission: document.getElementById('missionPill'),
   banner: document.getElementById('banner'),
   pauseBtn: document.getElementById('pauseBtn'),
+  novaBtn: document.getElementById('novaBtn'),
+  overlayMenuBtn: document.getElementById('overlayMenuBtn'),
   overlay: document.getElementById('overlay'),
   overlayKicker: document.getElementById('overlayKicker'),
   overlayTitle: document.getElementById('overlayTitle'),
@@ -165,7 +167,12 @@ let game, bestScore = loadBest(), last = 0, acc = 0, rafId = 0;
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
 function rand(a, b) { return a + Math.random() * (b - a); }
-function loadBest() { try { return Number(localStorage.getItem('upjump-best')) || 0; } catch { return 0; } }
+function loadBest() {
+  try {
+    const best = Number(localStorage.getItem('upjump-best'));
+    return Number.isFinite(best) ? clamp(Math.floor(best), 0, 1e9) : 0;
+  } catch { return 0; }
+}
 function saveBest(v) { try { localStorage.setItem('upjump-best', String(v)); } catch {} }
 function roundRect(x, y, w, h, r) {
   ctx.beginPath();
@@ -382,10 +389,18 @@ function syncHud() {
   dom.score.textContent = game.score; dom.best.textContent = bestScore; dom.combo.textContent = `x${game.combo}`;
   dom.energyFill.style.width = `${Math.round(game.energy)}%`; dom.energyLabel.textContent = `${Math.round(game.energy)}%`;
   dom.mission.textContent = `${game.mission.label} (${game.mission.progress}/${game.mission.target})`;
-  dom.banner.textContent = game.banner; dom.banner.classList.toggle('show', game.bannerTimer > 0); dom.pauseBtn.textContent = game.mode === MODES.PLAY ? 'II' : '>';
+  dom.banner.textContent = game.banner;
+  dom.banner.classList.toggle('show', game.bannerTimer > 0);
+  dom.pauseBtn.textContent = game.mode === MODES.PLAY ? 'II' : '>';
+  dom.pauseBtn.setAttribute('aria-label',game.mode === MODES.PAUSE ? 'Oyuna devam et' : 'Oyunu duraklat');
+  dom.novaBtn.hidden = game.mode !== MODES.PLAY;
+  dom.novaBtn.disabled = game.mode !== MODES.PLAY || game.energy < 100;
+  const novaText = game.energy >= 100 ? '⚡ NOVA' : `⚡ ${Math.round(game.energy)}%`;
+  if (dom.novaBtn.textContent !== novaText) dom.novaBtn.textContent = novaText;
 }
 
 function updateOverlay() {
+  dom.overlayMenuBtn.hidden = game.mode === MODES.MENU || game.mode === MODES.PLAY;
   if (game.mode === MODES.PLAY) { dom.overlay.style.display = 'none'; return; }
   dom.overlay.style.display = 'flex';
   if (game.mode === MODES.MENU) {
@@ -405,37 +420,111 @@ function updateOverlay() {
 
 function fit() {
   const s = Math.min((window.innerWidth - 24) / W, (window.innerHeight - 24) / H);
-  const scale = Math.max(.42, Math.min(1.6, s));
+  const scale = Math.max(.25, Math.min(1.6, s));
   dom.wrapper.style.width = `${Math.round(W * scale)}px`;
   dom.wrapper.style.height = `${Math.round(H * scale)}px`;
 }
 function render() { drawGame(game); syncHud(); }
-function startGame() { game = createGame(MODES.PLAY); render(); updateOverlay(); }
-function openMenu() { game = createGame(MODES.MENU); render(); updateOverlay(); }
-function primaryAction() { if (game.mode === MODES.MENU || game.mode === MODES.OVER) startGame(); else if (game.mode === MODES.PAUSE) { game.mode = MODES.PLAY; updateOverlay(); } }
-function togglePause() { if (game.mode === MODES.PLAY) game.mode = MODES.PAUSE; else if (game.mode === MODES.PAUSE) game.mode = MODES.PLAY; else return; updateOverlay(); render(); }
+function resetControls() { input.left = false; input.right = false; input.pointerX = null; input.boost = false; }
+function startGame() { resetControls(); game = createGame(MODES.PLAY); acc = 0; render(); updateOverlay(); }
+function openMenu() { resetControls(); game = createGame(MODES.MENU); acc = 0; render(); updateOverlay(); }
+function primaryAction() {
+  if (game.mode === MODES.MENU || game.mode === MODES.OVER) startGame();
+  else if (game.mode === MODES.PAUSE) { game.mode = MODES.PLAY; acc = 0; updateOverlay(); }
+}
+function togglePause() {
+  if (game.mode === MODES.PLAY) { game.mode = MODES.PAUSE; resetControls(); }
+  else if (game.mode === MODES.PAUSE) { game.mode = MODES.PLAY; acc = 0; }
+  else return;
+  updateOverlay(); render();
+}
 async function toggleFullscreen() { try { if (document.fullscreenElement) await document.exitFullscreen(); else await dom.wrapper.requestFullscreen(); } catch {} }
 function step(frames = 1) { for (let i = 0; i < frames; i++) updateGame(game); render(); }
-function loop(ts) { if (!last) last = ts; acc += Math.min(32, ts - last || STEP); last = ts; while (acc >= STEP) { updateGame(game); acc -= STEP; } render(); rafId = requestAnimationFrame(loop); }
+function loop(ts) {
+  if (!last) last = ts;
+  const elapsed = Math.max(0, Math.min(100, ts - last));
+  last = ts;
+  // Catch up at 30/60/120Hz without making a 15FPS device run in slow motion.
+  // Limit backlog to prevent an infinite spiral after a long suspended frame.
+  if (game.mode === MODES.PLAY) {
+    acc += elapsed;
+    let steps = 0;
+    while (acc >= STEP && steps < 6 && game.mode === MODES.PLAY) {
+      updateGame(game);
+      acc -= STEP;
+      steps++;
+    }
+    if (steps === 6 && acc >= STEP) acc = STEP * .5;
+  } else acc = 0;
+  render();
+  rafId = requestAnimationFrame(loop);
+}
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft') input.left = true;
-  if (e.key === 'ArrowRight') input.right = true;
-  if ((e.code === 'Space' || e.key === ' ') && !e.repeat) { if (game.mode === MODES.PLAY) input.boost = true; e.preventDefault(); }
+  if (e.key === 'ArrowLeft') { input.left = true; e.preventDefault(); }
+  if (e.key === 'ArrowRight') { input.right = true; e.preventDefault(); }
+  if ((e.code === 'Space' || e.key === ' ') && !e.repeat) {
+    if (game.mode === MODES.PLAY) input.boost = true;
+    e.preventDefault();
+  }
   if (e.key === 'Enter' && !e.repeat) primaryAction();
-  if ((e.key === 'p' || e.key === 'P') && !e.repeat) togglePause();
+  if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && !e.repeat) togglePause();
   if ((e.key === 'f' || e.key === 'F') && !e.repeat) toggleFullscreen();
 });
-document.addEventListener('keyup', e => { if (e.key === 'ArrowLeft') input.left = false; if (e.key === 'ArrowRight') input.right = false; });
-function setPointer(e) { const p = e.touches ? e.touches[0] : e; if (p) input.pointerX = p.clientX; }
-canvas.addEventListener('pointerdown', e => { if (game.mode === MODES.PLAY) setPointer(e); });
-canvas.addEventListener('pointermove', e => { if (input.pointerX != null) setPointer(e); });
-window.addEventListener('pointerup', () => { input.pointerX = null; });
-canvas.addEventListener('touchstart', e => { if (game.mode === MODES.PLAY) setPointer(e); }, { passive:true });
-canvas.addEventListener('touchmove', e => setPointer(e), { passive:true });
+document.addEventListener('keyup', e => {
+  if (e.key === 'ArrowLeft') input.left = false;
+  if (e.key === 'ArrowRight') input.right = false;
+});
+function setPointer(e) {
+  const p = e.touches ? e.touches[0] : e;
+  if (p) input.pointerX = p.clientX;
+}
+let steeringPointerId = null;
+canvas.addEventListener('pointerdown', e => {
+  if (game.mode !== MODES.PLAY || steeringPointerId !== null) return;
+  steeringPointerId = e.pointerId;
+  setPointer(e);
+  try { canvas.setPointerCapture(e.pointerId); } catch {}
+});
+canvas.addEventListener('pointermove', e => {
+  if (steeringPointerId === e.pointerId && game.mode === MODES.PLAY) setPointer(e);
+});
+function endSteering(e) {
+  if (steeringPointerId !== e.pointerId) return;
+  steeringPointerId = null;
+  input.pointerX = null;
+  try { if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId); } catch {}
+}
+canvas.addEventListener('pointerup', endSteering);
+canvas.addEventListener('pointercancel', endSteering);
+canvas.addEventListener('touchstart', e => {
+  if (game.mode === MODES.PLAY) { e.preventDefault(); setPointer(e); }
+}, { passive:false });
+canvas.addEventListener('touchmove', e => {
+  if (game.mode === MODES.PLAY) { e.preventDefault(); setPointer(e); }
+}, { passive:false });
 canvas.addEventListener('touchend', () => { input.pointerX = null; }, { passive:true });
-dom.playBtn.addEventListener('click', primaryAction); dom.pauseBtn.addEventListener('click', togglePause);
-window.addEventListener('resize', fit); document.addEventListener('fullscreenchange', fit);
+canvas.addEventListener('touchcancel', () => { input.pointerX = null; }, { passive:true });
+function onFocusLost() {
+  if (game.mode === MODES.PLAY) togglePause();
+  resetControls();
+  steeringPointerId = null;
+}
+window.addEventListener('blur', onFocusLost);
+document.addEventListener('visibilitychange', () => { if (document.hidden) onFocusLost(); });
+dom.novaBtn.addEventListener('pointerdown', e => {
+  e.preventDefault(); e.stopPropagation();
+  if (game.mode === MODES.PLAY && game.energy >= 100) input.boost = true;
+});
+dom.novaBtn.addEventListener('click', e => {
+  e.preventDefault(); e.stopPropagation();
+  if (game.mode === MODES.PLAY && game.energy >= 100) input.boost = true;
+});
+dom.overlayMenuBtn.addEventListener('click', openMenu);
+dom.playBtn.addEventListener('click', primaryAction);
+dom.pauseBtn.addEventListener('click', togglePause);
+window.addEventListener('resize', fit);
+document.addEventListener('fullscreenchange', fit);
 
 window.render_game_to_text = () => JSON.stringify({
   mode: game.mode,
