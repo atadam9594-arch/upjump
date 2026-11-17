@@ -176,6 +176,10 @@ const dom = {
   banner: document.getElementById('banner'),
   pauseBtn: document.getElementById('pauseBtn'),
   novaBtn: document.getElementById('novaBtn'),
+  soundBtn: document.getElementById('soundBtn'),
+  mobileMoveControls: document.getElementById('mobileMoveControls'),
+  mobileLeftBtn: document.getElementById('mobileLeftBtn'),
+  mobileRightBtn: document.getElementById('mobileRightBtn'),
   overlayMenuBtn: document.getElementById('overlayMenuBtn'),
   overlay: document.getElementById('overlay'),
   overlayKicker: document.getElementById('overlayKicker'),
@@ -186,6 +190,43 @@ const dom = {
 };
 const input = { left:false, right:false, pointerX:null, boost:false };
 let game, bestScore = loadBest(), last = 0, acc = 0, rafId = 0;
+let soundEnabled = (() => { try { return localStorage.getItem('upjump-sound') !== '0'; } catch { return true; } })();
+let audioContext = null;
+function unlockAudio() {
+  if (!soundEnabled) return;
+  try {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    if (!Ctor) return;
+    if (!audioContext) audioContext = new Ctor();
+    if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
+  } catch {}
+}
+function playTone(frequency, duration = .09, shape = 'sine', volume = .024) {
+  if (!soundEnabled) return;
+  try {
+    unlockAudio();
+    if (!audioContext || audioContext.state === 'closed') return;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const t0 = audioContext.currentTime;
+    oscillator.type = shape;
+    oscillator.frequency.setValueAtTime(frequency, t0);
+    gain.gain.setValueAtTime(.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(Math.max(.002, volume), t0 + .015);
+    gain.gain.exponentialRampToValueAtTime(.0001, t0 + duration);
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(t0);
+    oscillator.stop(t0 + duration + .015);
+    oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+  } catch {}
+}
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  try { localStorage.setItem('upjump-sound', soundEnabled ? '1' : '0'); } catch {}
+  if (soundEnabled) unlockAudio();
+  syncHud();
+}
 
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
@@ -261,7 +302,7 @@ function missionHit(g, type) {
   if (g.mission.type !== type) return;
   g.mission.progress += 1;
   if (g.mission.progress >= g.mission.target) {
-    g.bonus += 180; g.energy = clamp(g.energy + 36, 0, 100); setBanner(g, 'Hedef Tamam +180'); g.mission = createMission();
+    g.bonus += 180; g.energy = clamp(g.energy + 36, 0, 100); setBanner(g, 'Hedef Tamam +180'); playTone(960, .18, 'sine', .028); g.mission = createMission();
   }
 }
 function totalScore(g) { g.score = g.dist + g.bonus; if (g.score > bestScore) { bestScore = g.score; saveBest(bestScore); } }
@@ -281,7 +322,7 @@ function moveIntent() {
 function tryNova(g) {
   if (g.energy < 100 || g.player.boost > 0) return false;
   g.energy = 0; g.player.boost = 54; g.player.shield = 68; g.player.vy = -23.5; g.player.squash = .62;
-  g.combo = Math.min(g.combo + 2, 9); setBanner(g, 'Nova Dash'); addBurst(g, g.player.x + 18, g.player.y + 20, '#ffd166', 16); return true;
+  g.combo = Math.min(g.combo + 2, 9); setBanner(g, 'Nova Dash'); playTone(360, .21, 'sawtooth', .025); addBurst(g, g.player.x + 18, g.player.y + 20, '#ffd166', 16); return true;
 }
 
 function updateGame(g) {
@@ -317,7 +358,7 @@ function updateGame(g) {
     for (const p of g.platforms) {
       if (!solid(p)) continue;
       if (pl.x + pl.w > p.x && pl.x < p.x + p.w && pl.y + pl.h > p.y && pl.y + pl.h < p.y + p.h + 12 && pl.y + pl.h - pl.vy <= p.y + p.h) {
-        pl.vy = -jumpPower(p.type); pl.squash = .78;
+        pl.vy = -jumpPower(p.type); pl.squash = .78; playTone(p.type === PT.S ? 620 : 390, .07, 'triangle', .012);
         const gap = g.frame - (g.lastBounce || -999); g.combo = gap < 84 ? Math.min(g.combo + 1, 9) : 1; g.lastBounce = g.frame;
         let energy = 5;
         if (p.type === PT.S) { g.bonus += 12; energy = 14; missionHit(g, 'spring'); setBanner(g, 'Spring Launch'); }
@@ -336,7 +377,7 @@ function updateGame(g) {
     if (!s.dead && Math.abs(cx - s.x) < reach && Math.abs(cy - s.y) < reach) {
       s.dead = true;
       const bonus = (s.kind === 'orb' ? 70 : 25) + g.combo * 5;
-      g.bonus += bonus; g.energy = clamp(g.energy + (s.kind === 'orb' ? 44 : 18), 0, 100);
+      g.bonus += bonus; g.energy = clamp(g.energy + (s.kind === 'orb' ? 44 : 18), 0, 100); playTone(s.kind === 'orb' ? 900 : 710, .09, 'sine', .022);
       addBurst(g, s.x, s.y, s.kind === 'orb' ? '#53f5d0' : '#ffd166', s.kind === 'orb' ? 10 : 7);
       addText(g, s.x, s.y - 12, `+${bonus}`, s.kind === 'orb' ? '#53f5d0' : '#ffd166'); if (s.kind === 'star') missionHit(g, 'collect');
     }
@@ -345,11 +386,11 @@ function updateGame(g) {
     if (!d.dead && inter(pl, d)) {
       if (pl.shield > 0 || pl.boost > 0) {
         d.dead = true; const bonus = 140 + g.combo * 10; g.bonus += bonus; addBurst(g, d.x + d.w / 2, d.y + d.h / 2, '#ff8f6b', 14); addText(g, d.x + d.w / 2, d.y - 10, `+${bonus}`, '#ffcfb5'); missionHit(g, 'nova');
-      } else { g.mode = MODES.OVER; g.endReason = 'drone'; if (g.score >= bestScore) saveBest(bestScore); updateOverlay(); }
+      } else { g.mode = MODES.OVER; g.endReason = 'drone'; playTone(165, .3, 'triangle', .028); if (g.score >= bestScore) saveBest(bestScore); updateOverlay(); }
     }
   });
   if (g.frame - (g.lastBounce || -999) > 120) g.combo = 0;
-  if (pl.y - g.camY > H + 80) { g.mode = MODES.OVER; g.endReason = 'fall'; if (g.score >= bestScore) saveBest(bestScore); updateOverlay(); }
+  if (pl.y - g.camY > H + 80 && g.mode === MODES.PLAY) { g.mode = MODES.OVER; g.endReason = 'fall'; playTone(190, .24, 'triangle', .028); if (g.score >= bestScore) saveBest(bestScore); updateOverlay(); }
   g.dist = Math.max(g.dist, Math.floor(-g.camY / 10)); totalScore(g); if (g.bannerTimer > 0) g.bannerTimer--;
 }
 
@@ -417,6 +458,11 @@ function syncHud() {
   dom.pauseBtn.textContent = game.mode === MODES.PLAY ? 'II' : '>';
   dom.pauseBtn.setAttribute('aria-label',game.mode === MODES.PAUSE ? 'Oyuna devam et' : 'Oyunu duraklat');
   dom.novaBtn.hidden = game.mode !== MODES.PLAY;
+  dom.mobileMoveControls.hidden = game.mode !== MODES.PLAY;
+  dom.soundBtn.hidden = game.mode === MODES.MENU || game.mode === MODES.OVER;
+  dom.soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+  dom.soundBtn.setAttribute('aria-pressed', String(soundEnabled));
+  dom.soundBtn.setAttribute('aria-label', soundEnabled ? 'Sesi kapat' : 'Sesi aç');
   dom.novaBtn.disabled = game.mode !== MODES.PLAY || game.energy < 100;
   const novaText = game.energy >= 100 ? '⚡ NOVA' : `⚡ ${Math.round(game.energy)}%`;
   if (dom.novaBtn.textContent !== novaText) dom.novaBtn.textContent = novaText;
@@ -543,8 +589,30 @@ dom.novaBtn.addEventListener('click', e => {
   e.preventDefault(); e.stopPropagation();
   if (game.mode === MODES.PLAY && game.energy >= 100) input.boost = true;
 });
+function bindMobileMove(button, direction) {
+  let activePointer = null;
+  button.addEventListener('pointerdown', e => {
+    if (game.mode !== MODES.PLAY) return;
+    e.preventDefault();e.stopPropagation();
+    unlockAudio();
+    activePointer = e.pointerId;
+    input[direction] = true;
+    try { button.setPointerCapture(e.pointerId); } catch {}
+  });
+  const release = e => {
+    if (activePointer !== e.pointerId) return;
+    input[direction] = false;
+    activePointer = null;
+  };
+  button.addEventListener('pointerup', release);
+  button.addEventListener('pointercancel', release);
+  window.addEventListener('blur', () => { input[direction] = false; activePointer = null; });
+}
+bindMobileMove(dom.mobileLeftBtn, 'left');
+bindMobileMove(dom.mobileRightBtn, 'right');
+dom.soundBtn.addEventListener('click', toggleSound);
 dom.overlayMenuBtn.addEventListener('click', openMenu);
-dom.playBtn.addEventListener('click', primaryAction);
+dom.playBtn.addEventListener('click', () => { unlockAudio(); primaryAction(); });
 dom.pauseBtn.addEventListener('click', togglePause);
 window.addEventListener('resize', fit);
 document.addEventListener('fullscreenchange', fit);
