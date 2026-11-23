@@ -1,0 +1,14 @@
+{
+  "name": "upjump",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "UpJump — Brego Games Originals. Portal-ready vertical arcade climber.",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "node scripts/smoke.mjs",
+    "lint": "node scripts/smoke.mjs",
+    "test": "node scripts/smoke.mjs"
+  }
+}

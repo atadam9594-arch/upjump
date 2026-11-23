@@ -1,6 +1,6 @@
 # UpJump — Brego Games Originals
 
-A browser-first, single-file vertical arcade platformer: collect stars, build combos, avoid drones and unleash **Nova Dash** once the energy bar reaches 100%.
+A browser-first, single-file, **portal-ready** vertical arcade climber: collect stars, ascend through 5 dynamic atmospheric biomes, chain combos, smash patrol drones, and unleash **Nova Dash** once energy hits 100%.
 
 **Live site:** https://upjump.pages.dev/
 
@@ -8,45 +8,45 @@ A browser-first, single-file vertical arcade platformer: collect stars, build co
 
 | Action | Desktop | Mobile |
 |---|---|---|
-| Move | ← / → arrows | ◀ / ▶ on-screen buttons, or touch a screen edge |
-| Nova Dash (requires 100% energy) | Space | ⚡ NOVA button |
-| Pause / resume | P / Escape / top-right pause button | Top-right pause button |
-| Return to start menu | Pause/over screen → ☰ Ana Menü | Same |
-| Fullscreen | F | Browser fullscreen when supported |
-| Sound | 🔊 / 🔇 toggle | 🔊 / 🔇 toggle |
+| Move | `←` / `→` or `A` / `D` | `◀` / `▶` on-screen pads, or touch/drag screen edges |
+| Nova Dash (100% energy) | `Space` / `↑` / `W` / `Shift` | `⚡ NOVA` button |
+| Pause / Resume | `P` / `Escape` / Pause button | Top-right Pause button |
+| Quick Restart | `R` (when paused or run over) | Restart / Play Again button |
+| Mute / Unmute | `M` / Sound button | Top-right Sound button |
+| Fullscreen | `F` / Fullscreen button | Fullscreen button (when supported) |
+| Language | `EN` / `TR` switcher in overlay | Same |
 
-On mobile, holding one direction button does not block the other thumb from pressing Nova Dash. The game auto-pauses when the tab is backgrounded or the window loses focus. Online play is **not** part of this single-player game.
+## Portal Readiness (Poki, CrazyGames, GameDistribution, itch.io)
 
-## Saving
+- **Zero external network requests:** Self-contained single HTML5 file (`public/index.html`) with inline SVG favicon/wordmark, zero external Google Fonts CDN calls, and 100% procedural Web Audio synthesis (zero copyrighted assets).
+- **Iframe-friendly headers:** `public/_headers` permits cross-origin portal iframe embedding (no `X-Frame-Options: SAMEORIGIN` blocker) and prevents keyboard scroll bleed (`Arrow*` / `Space`) plus long-press context menus on mobile.
+- **Resilient storage:** `safeStorage` automatically falls back to in-memory persistence inside strict sandboxed iframes where `localStorage` is blocked.
+- **Built-in Portal SDK Adapter (`window.UpJumpPortal`):** Auto-detects `window.PokiSDK`, `window.CrazyGames.SDK`, and `window.gdsdk` to emit `gameLoadingFinished`, `gameplayStart`, `gameplayStop`, and `happyTime` events, and exposes `UpJumpPortal.pauseForAd()` / `UpJumpPortal.resumeAfterAd()` for commercial/rewarded ad breaks.
+- **Auto-localized EN / TR UI:** Automatically detects browser language (`tr` vs `en`) with a one-tap manual `EN | TR` switcher.
 
-- Highest score is saved in the browser's localStorage under `upjump-best`. Non-numeric/corrupt entries are ignored.
-- Sound preference is saved under `upjump-sound` (`1` = on, `0` = muted).
-- Current in-progress runs are not preserved after closing the page. Do not market this as cloud save or full session resume.
+## Visual & Technical Highlights
+
+- **High-DPI (Retina) Canvas:** Backing buffer scales cleanly up to `2.5x` `devicePixelRatio` with responsive desktop/mobile framing (`100dvh` & safe-area inset aware).
+- **5 Seamless Altitude Biomes:** Twilight Skyline → Aurora Canopy → Stratosphere → Orbital Horizon → Deep Nova, complete with parallax aurora ribbons, clouds, ringed planet, and shooting comets.
+- **Tactile Game Feel:** Volume-preserving squash & stretch, reactive jet-boots & blinking visor eyes, screen-wrap ghost rendering, recoil & crumbling debris, animated coil springs, shockwave rings, speed lines, hit-stop on drone smash, and `prefers-reduced-motion` support.
+- **Fair Procedural Generation:** Reachability-aware horizontal placement, fragile-platform streak caps, gentle magnetic pickup pull, and safe drone spacing.
 
 ## Run locally
 
 ```sh
-python -m http.server 8123 --directory public
+npm run dev
 ```
 
-Open http://127.0.0.1:8123/.
+Open http://127.0.0.1:3000/.
 
 ## Tests
 
 ```sh
+npm test
+# or directly:
 node scripts/smoke.mjs
 ```
 
-The `.github/workflows/game-qa.yml` workflow runs a source-level and simulated interaction smoke test on each relevant push and pull request. It checks game start, mobile Nova, muting, pause/resume, menu return and fixed-step simulation at lower frame rates. It is not a substitute for Android/iOS touch and audio QA.
-
 ## Release
 
-Cloudflare Pages uses `wrangler.jsonc` with `pages_build_output_dir: "./public"`. The canonical deployment target is https://upjump.pages.dev/. After code changes, check the current live HTML release marker `upjump-mobile-audio-20261117-r1`, the on-screen mobile controls and actual touch/audio behavior. A GitHub commit alone is not proof that deployment completed.
-
-## 2026-11-17 improvements
-
-- Added visible two-thumb mobile steering and Nova Dash.
-- Added synthesized in-game audio and remembered mute setting; no copyrighted recordings or samples.
-- Added background auto-pause, Escape pause/resume, pause/death-to-menu return.
-- Switched to bounded 60 Hz simulation stepping so a 15–30 FPS canvas does not run gameplay in slow motion.
-- Improved small-viewport scaling, keyboard-focus labels and invalid high-score handling.
+Cloudflare Pages uses `wrangler.jsonc` with `pages_build_output_dir: "./public"`. For portal ZIP submissions (itch.io, Poki, CrazyGames, GameDistribution), package `public/index.html` directly at the ZIP root.
