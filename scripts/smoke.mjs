@@ -8,6 +8,8 @@ const headers = readFileSync(new URL('../public/_headers', import.meta.url), 'ut
 assert.ok(!/X-Frame-Options:\s*(DENY|SAMEORIGIN)/i.test(headers), 'public/_headers must allow portal iframe embedding');
 assert.ok(!/fonts\.googleapis\.com/i.test(html), 'External Google Fonts CDN should not block offline/portal ZIP packaging');
 
+const artKeys=JSON.parse(html.match(/const ASSET_KEYS=(\[[^;]+\]);/)[1]);
+for(const key of artKeys){const bytes=readFileSync(new URL('../public/assets/kenney/'+key+'.png',import.meta.url));assert.equal(bytes.toString('hex',0,8),'89504e470d0a1a0a','PNG signature '+key);}
 const match = html.match(/<script>([\s\S]*?)<\/script>/);
 assert.ok(match, 'Missing inline game script');
 for (const id of ['gameCanvas', 'novaBtn', 'mobileLeftBtn', 'mobileRightBtn', 'soundBtn', 'overlayMenuBtn', 'pauseBtn', 'langEnBtn', 'langTrBtn', 'fullscreenBtn']) {
@@ -16,8 +18,10 @@ for (const id of ['gameCanvas', 'novaBtn', 'mobileLeftBtn', 'mobileRightBtn', 's
 
 const listeners = new Map();
 const elements = new Map();
+let spriteDraws=0;
 const context = new Proxy({}, {
   get(obj, name) {
+    if(name==='drawImage')return ()=>{spriteDraws++};
     if (name === 'createLinearGradient' || name === 'createRadialGradient')
       return () => ({ addColorStop() {} });
     return obj[name] ?? (() => {});
@@ -61,6 +65,7 @@ const document = {
   exitFullscreen() {},
 };
 const window = {
+  Image:class{constructor(){this.complete=true;this.naturalWidth=128;this.naturalHeight=128;}},
   innerWidth: 390,
   innerHeight: 720,
   devicePixelRatio: 2,
@@ -81,6 +86,8 @@ const state = () => JSON.parse(window.render_game_to_text());
 
 // 1. Menu & High-DPI check
 assert.equal(state().mode, 'menu');
+assert.equal(state().art.ready,29);
+assert.ok(spriteDraws>0,'PNG render path must draw assets');
 assert.equal(element('gameCanvas').width, 800, 'High-DPI backing width should scale with devicePixelRatio');
 assert.equal(element('gameCanvas').height, 1280, 'High-DPI backing height should scale with devicePixelRatio');
 

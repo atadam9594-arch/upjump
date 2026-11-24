@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="brego-release" content="upjump-skyfrontiers-20261124-r5">
+<meta name="brego-release" content="upjump-sprite-edition-20261124-r6">
 <meta property="og:title" content="UpJump — Brego Games Originals">
 <meta property="og:description" content="Collect stars, climb atmospheric biomes, chain combos, and unleash Nova Dash. Play instantly on mobile and desktop.">
 <meta property="og:type" content="website">
@@ -748,7 +748,7 @@ body{background:radial-gradient(ellipse at 25% 15%,#345786 0%,#142749 43%,#090f2
 #menuGuide{display:none}#ascensionRail,#flightRail{border-color:#81b6dc55;background:linear-gradient(155deg,#254765,#142943)}
 @media(max-width:540px){#gameWrapper{border:0;border-radius:0}}
 @media(max-height:590px){#heroArt{height:46px}.logo-svg{height:36px}#modeSelect{margin-bottom:6px}.mode-choice{padding:4px 3px}#modeBrief{margin-bottom:5px}#runBadge{margin-bottom:3px}#playBtn{font-size:16px}}
-</style>
+#heroArt{position:relative;overflow:hidden;border-radius:14px}#heroArt .heroSprite{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg);height:88%;width:auto;z-index:2;filter:drop-shadow(0 4px 2px #19344c66)}#heroArt.asset-ready svg g:nth-of-type(1){opacity:0}</style>
 </head>
 <body>
 <aside id="ascensionRail" aria-hidden="true"><div class="rail-kicker">UPJUMP / 01</div><div class="rail-title" id="railMapTitle">ASCENSION</div><div id="railMap"></div></aside><div id="gameWrapper">
@@ -834,7 +834,7 @@ body{background:radial-gradient(ellipse at 25% 15%,#345786 0%,#142749 43%,#090f2
 
       <h1 id="overlayTitle" class="sr-brand">UPJUMP</h1>
       <div id="newBestBanner" hidden>NEW HIGH SCORE</div>
-<div id="heroArt" aria-hidden="true"><svg viewBox="0 0 260 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="heroSky" x2="0" y2="1"><stop stop-color="#4f91c9"/><stop offset="1" stop-color="#b7e4f1"/></linearGradient></defs><rect x="2" y="2" width="256" height="96" rx="19" fill="url(#heroSky)"/><circle cx="211" cy="25" r="18" fill="#fff0bc"/><path d="M0 78L34 43 57 70 90 35 132 81 170 44 214 80 260 42V100H0Z" fill="#5d90aa"/><path d="M0 83 Q31 63 58 82T112 85T166 77T222 87T260 76V100H0" fill="#d5f1f5"/><g transform="translate(130 44) rotate(-12)" stroke="#142b43" stroke-width="2.5" stroke-linejoin="round"><path d="M-14 16 Q-41 8 -51 27L-37 25 -31 38 -17 24" fill="#fa705f"/><rect x="-22" y="-21" width="44" height="40" rx="17" fill="#f9e3b0"/><rect x="-16" y="-15" width="33" height="22" rx="10" fill="#1e5275"/><path d="M-11 -9Q0-16 12-9" fill="none" stroke="#8ee5ff" stroke-width="3"/><circle cx="-6" cy="-3" r="3" fill="#fff"/><circle cx="8" cy="-3" r="3" fill="#fff"/><rect x="-16" y="17" width="13" height="9" rx="3" fill="#386784"/><rect x="5" y="17" width="13" height="9" rx="3" fill="#386784"/><path d="M-12 26l3 13 5-13M9 26l5 13 4-13" fill="#ffce54" stroke="none"/></g><g fill="#ffd166" stroke="#a56424" stroke-width="1.5"><path d="M55 17l4 10 11 1-8 7 3 11-10-6-10 6 3-11-8-7 11-1Z"/><path d="M188 48l3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z"/></g></svg></div><div id="runBadge"></div>
+<div id="heroArt" aria-hidden="true"><img src="./assets/kenney/pilot0_jump.png" alt="" class="heroSprite" id="heroSprite" hidden><svg viewBox="0 0 260 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="heroSky" x2="0" y2="1"><stop stop-color="#4f91c9"/><stop offset="1" stop-color="#b7e4f1"/></linearGradient></defs><rect x="2" y="2" width="256" height="96" rx="19" fill="url(#heroSky)"/><circle cx="211" cy="25" r="18" fill="#fff0bc"/><path d="M0 78L34 43 57 70 90 35 132 81 170 44 214 80 260 42V100H0Z" fill="#5d90aa"/><path d="M0 83 Q31 63 58 82T112 85T166 77T222 87T260 76V100H0" fill="#d5f1f5"/><g transform="translate(130 44) rotate(-12)" stroke="#142b43" stroke-width="2.5" stroke-linejoin="round"><path d="M-14 16 Q-41 8 -51 27L-37 25 -31 38 -17 24" fill="#fa705f"/><rect x="-22" y="-21" width="44" height="40" rx="17" fill="#f9e3b0"/><rect x="-16" y="-15" width="33" height="22" rx="10" fill="#1e5275"/><path d="M-11 -9Q0-16 12-9" fill="none" stroke="#8ee5ff" stroke-width="3"/><circle cx="-6" cy="-3" r="3" fill="#fff"/><circle cx="8" cy="-3" r="3" fill="#fff"/><rect x="-16" y="17" width="13" height="9" rx="3" fill="#386784"/><rect x="5" y="17" width="13" height="9" rx="3" fill="#386784"/><path d="M-12 26l3 13 5-13M9 26l5 13 4-13" fill="#ffce54" stroke="none"/></g><g fill="#ffd166" stroke="#a56424" stroke-width="1.5"><path d="M55 17l4 10 11 1-8 7 3 11-10-6-10 6 3-11-8-7 11-1Z"/><path d="M188 48l3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z"/></g></svg></div><div id="runBadge"></div>
       <p id="overlayLead"></p>
 
       <div id="menuGuide">
@@ -874,6 +874,14 @@ body{background:radial-gradient(ellipse at 25% 15%,#345786 0%,#142749 43%,#090f2
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+// Local CC0 images. Vector art remains a loading/error fallback.
+const ASSET_KEYS=["pilot0_idle","pilot0_jump","pilot1_idle","pilot1_jump","pilot2_idle","pilot2_jump","pilot3_idle","pilot3_jump","pilot4_idle","pilot4_jump","grass","sand","snow","stone","cake","wood","broken","spring","springIn","coin","orb","drone","drone2","cloud","cloud2","hills","desert","forest","mushrooms"];
+const ART=Object.create(null);
+if(typeof window.Image==='function')for(const key of ASSET_KEYS){const img=new window.Image();img.decoding='async';ART[key]=img;img.src='./assets/kenney/'+key+'.png';}
+function artReady(key){const img=ART[key];return !!(img&&img.complete&&img.naturalWidth>0&&img.naturalHeight>0);}
+function sprite(key,x,y,w,h){if(!artReady(key))return false;ctx.drawImage(ART[key],x,y,w,h);return true;}
+function spriteFit(key,x,y,w,h){if(!artReady(key))return false;const img=ART[key],k=Math.min(w/img.naturalWidth,h/img.naturalHeight),dw=img.naturalWidth*k,dh=img.naturalHeight*k;ctx.drawImage(img,x+(w-dw)/2,y+(h-dh)/2,dw,dh);return true;}
+
 const W = 400, H = 640, STEP = 1000 / 60, TAU = Math.PI * 2;
 const PT = { N: 'normal', M: 'moving', S: 'spring', C: 'crumble', P: 'phase' };
 const MODES = { MENU: 'menu', PLAY: 'playing', PAUSE: 'paused', OVER: 'game_over' };
@@ -2053,10 +2061,12 @@ function drawCloud(x, y, scale, alpha) {
 // Rendering Pipeline
 function drawBackground(g,biome){
  const themes=[['#386fa9','#72bcd5','#f9dcb3','#628dab','#315a80','#e9f7ed'],['#37738c','#79c7bc','#d8f2b0','#579b98','#2d777b','#e5f8df'],['#575a9e','#a6a2dd','#f5c6be','#7b79ba','#51578c','#f8e7f7'],['#20294f','#475b8c','#eeae9d','#526590','#263557','#b7d7f1'],['#271b4c','#724884','#f0a5c4','#72589b','#42315f','#efd0fa']];
- const a=themes[biome.idx],grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,a[0]);grad.addColorStop(.57,a[1]);grad.addColorStop(1,a[2]);ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+ const a=themes[biome.idx]||themes[0],grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,a[0]);grad.addColorStop(.57,a[1]);grad.addColorStop(1,a[2]);ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
  const sunY=132+Math.sin(g.camY*.0006)*20,halo=ctx.createRadialGradient(290,sunY,28,290,sunY,100);halo.addColorStop(0,'rgba(255,240,190,.65)');halo.addColorStop(1,'rgba(255,240,190,0)');ctx.fillStyle=halo;ctx.fillRect(190,sunY-100,200,200);
  ctx.fillStyle=biome.idx<3?'#fff0c9':'#d9caff';ctx.beginPath();ctx.arc(290,sunY,biome.idx<3?42:54,0,TAU);ctx.fill();
  if(biome.idx>=3){ctx.strokeStyle='#efd9be';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(290,sunY,83,19,-.32,0,TAU);ctx.stroke();}
+ const landscape=['hills','forest','mushrooms','desert','mushrooms'][biome.idx]||'hills';
+ ctx.save();ctx.globalAlpha=.65;const horizon=H-230+Math.min(95,-g.camY*.045);sprite(landscape,0,horizon,W,235);ctx.restore();
  for(let layer=0;layer<3;layer++){
   const offset=(-g.camY*(.045+layer*.075))%(H+240);ctx.save();ctx.globalAlpha=.40+layer*.12;
   for(let i=0;i<5;i++){
@@ -2069,6 +2079,7 @@ function drawBackground(g,biome){
  }
  for(let i=0;i<8;i++){
   const x=((i*89+Math.sin(ambientT*.006+i)*18+430)%470)-35,y=((i*117-g.camY*.16)%(H+110)+H+110)%(H+110)-55;ctx.save();ctx.globalAlpha=biome.idx<3?.52:.20;ctx.fillStyle=a[5];ctx.beginPath();
+  if(spriteFit(i%2?'cloud':'cloud2',x-55,y-24,110,49)){ctx.restore();continue;}
   ctx.ellipse(x,y,37,11,0,0,TAU);ctx.ellipse(x-15,y-6,16,14,0,0,TAU);ctx.ellipse(x+6,y-11,20,19,0,0,TAU);ctx.ellipse(x+26,y-3,17,12,0,0,TAU);ctx.fill();ctx.restore();
  }
  if(biome.idx>=2){for(let i=0;i<24;i++){ctx.fillStyle='rgba(255,247,220,.55)';drawSparkle((i*83+14)%W,((i*113-g.camY*.06)%H+H)%H,i%4===0?3:1.3);}}
@@ -2077,6 +2088,12 @@ function drawBackground(g,biome){
 
 function drawPlayerSprite(pl,sx,sy,idleBob=0,ghostAlpha=1){
  ctx.save();ctx.globalAlpha=ghostAlpha;ctx.translate(sx,sy+idleBob);ctx.rotate(pl.tilt);ctx.scale(pl.face/Math.sqrt(Math.max(.55,pl.squash)),pl.squash);
+ const key='pilot'+suitIndex+'_'+(pl.vy<0||pl.boost?'jump':'idle');
+ if(artReady(key)){
+  if(pl.boost>0||pl.vy<-12){ctx.fillStyle=pl.boost?'#ffd166':'#b8efff';for(const x of [-9,9]){ctx.beginPath();ctx.moveTo(x-5,16);ctx.lineTo(x,pl.boost?45:28);ctx.lineTo(x+5,16);ctx.closePath();ctx.fill();}}
+  if(pl.shield>0){ctx.strokeStyle='#fff2b3';ctx.lineWidth=2.6;ctx.beginPath();ctx.arc(0,0,28,0,TAU);ctx.stroke();}
+  spriteFit(key,-23,-24,46,44);ctx.restore();return;
+ }
  const suit=SUITS[suitIndex],ink='#19344c',trim=pl.boost>0?'#ffb74a':suit.mid;
  ctx.strokeStyle=ink;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.fillStyle='#ef7358';ctx.beginPath();ctx.moveTo(-10,7);ctx.quadraticCurveTo(-27,5+Math.sin(ambientT*.16)*5,-37,16);ctx.lineTo(-28,17);ctx.lineTo(-30,26);ctx.quadraticCurveTo(-16,20,-8,14);ctx.closePath();ctx.fill();ctx.stroke();
  if(pl.shield>0){ctx.strokeStyle=pl.boost?'#fff1a3':'#e8fcff';ctx.lineWidth=2.6;ctx.beginPath();ctx.arc(0,0,28,0,TAU);ctx.stroke();}
@@ -2096,6 +2113,14 @@ function drawPlatform(p,sy){
  const x=p.x,w=p.w,ink='#244459',palettes={normal:['#a7e3ac','#5ba880','#577b8c'],moving:['#bdeaff','#63bce5','#48789b'],spring:['#ffe6a1','#f2ac55','#a86b48'],crumble:['#f5d6a0','#d6aa70','#8c6b58'],phase:['#e4c8ff','#a58ae0','#76649e']},c=p.risk?['#fff1b0','#e9ae43','#aa7439']:palettes[p.type];
  ctx.save();ctx.globalAlpha=p.alpha;
  if(p.type===PT.P&&!solid(p)){ctx.globalAlpha=.45;ctx.strokeStyle='#fff';ctx.setLineDash([6,4]);roundRect(x,sy,w,13,5);ctx.stroke();ctx.restore();return;}
+ const material=p.risk?'wood':p.type===PT.C?(p.broken?'broken':'stone'):p.type===PT.M?'snow':p.type===PT.S?'sand':p.type===PT.P?'cake':'grass';
+ if(sprite(material,x,sy,w,Math.max(20,w*.25))){
+   if(!p.visited){ctx.fillStyle='#fff4b2';roundRect(x+w*.32,sy-2,w*.36,3,1.5);ctx.fill();}
+   if(p.type===PT.S)spriteFit(p.springAnim>.4?'springIn':'spring',x+w/2-15,sy-21,30,25);
+   if(p.type===PT.M){ctx.strokeStyle='#183a62';ctx.lineWidth=2;for(const sign of [-1,1]){ctx.beginPath();ctx.moveTo(x+w/2+sign*8,sy+5);ctx.lineTo(x+w/2+sign*15,sy+9);ctx.lineTo(x+w/2+sign*8,sy+13);ctx.stroke();}}
+   if(p.risk){ctx.fillStyle='#fff0a6';drawSparkle(x+w/2,sy+18,4);}
+   ctx.restore();return;
+ }
  const depth=p.type===PT.C?20:18;
  ctx.fillStyle=c[2];ctx.strokeStyle=ink;ctx.lineWidth=2;ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(x+2,sy+7);ctx.lineTo(x+w-2,sy+7);ctx.lineTo(x+w*.86,sy+depth);ctx.lineTo(x+w*.65,sy+depth+6);ctx.lineTo(x+w*.31,sy+depth+3);ctx.lineTo(x+w*.12,sy+depth-3);ctx.closePath();ctx.fill();ctx.stroke();
  ctx.fillStyle='rgba(255,255,255,.13)';ctx.beginPath();ctx.moveTo(x+w*.14,sy+9);ctx.lineTo(x+w*.42,sy+9);ctx.lineTo(x+w*.31,sy+depth+2);ctx.closePath();ctx.fill();
@@ -2178,6 +2203,8 @@ function drawGame(g) {
     if (sy < -28 || sy > H + 28) return;
     ctx.save();
     ctx.translate(s.x, sy);
+    const collectible=s.kind==='orb'?'orb':'coin',size=s.kind==='orb'?28:23;
+    if(artReady(collectible)){const pulse=1+Math.sin(s.t)*.08;ctx.scale(pulse,pulse);ctx.shadowColor=s.kind==='orb'?'#68e8ff':'#ffcf55';ctx.shadowBlur=9;spriteFit(collectible,-size/2,-size/2,size,size);ctx.restore();return;}
     if (s.kind === 'orb') {
       const pulse = 1 + Math.sin(s.t * 1.5) * 0.08;
       ctx.scale(pulse, pulse);
@@ -2249,7 +2276,8 @@ function drawGame(g) {
 
     ctx.save();
     ctx.translate(dcx, dcy);
-
+    const droneKey=g.biomeIdx>=2?'drone2':'drone';
+    if(artReady(droneKey)){if(close&&g.player.shield<=0){ctx.strokeStyle='#ffb29a';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,24,0,TAU);ctx.stroke();}spriteFit(droneKey,-21,-13,42,26);ctx.restore();return;}
     // Subtle downward volumetric scanner cone
     const scanGrad = ctx.createLinearGradient(0, 8, 0, 42);
     scanGrad.addColorStop(0, g.player.boost > 0 ? 'rgba(255, 209, 102, 0.22)' : 'rgba(255, 110, 86, 0.22)');
@@ -2499,6 +2527,8 @@ function syncHud() {syncProgress();
 }
 
 function syncModeMenu(isMenu){
+ const hero=document.getElementById('heroSprite'),heroArt=document.getElementById('heroArt');
+ hero.src='./assets/kenney/pilot'+suitIndex+'_jump.png';hero.onload=()=>{hero.hidden=false;heroArt.classList.add('asset-ready');};hero.onerror=()=>{hero.hidden=true;heroArt.classList.remove('asset-ready');};hero.hidden=!artReady('pilot'+suitIndex+'_jump');heroArt.classList.toggle('asset-ready',!hero.hidden);
  for(const id of ['heroArt','modeSelect','modeBrief','runBadge'])document.getElementById(id).hidden=!isMenu;
  const a=document.getElementById('expeditionBtn'),b=document.getElementById('endlessBtn');
  a.textContent=lang==='tr'?'SEFER · 220m':'EXPEDITION · 220m';b.textContent=lang==='tr'?'SONSUZ':'ENDLESS';
@@ -2837,6 +2867,7 @@ window.render_game_to_text = () => JSON.stringify({
   mode: game.mode,
   lang,
   portal: portal.sdkName(),
+  art:{total:ASSET_KEYS.length,ready:ASSET_KEYS.filter(artReady).length},
   course:{mode:game.course,checkpoint:game.checkpoint,rescued:game.rescued,won:game.won,wins:expeditionWins,risk:game.routeBonus},
   progression:{target:nextTarget(game.dist),suit:suitIndex,unlocked:SUITS.filter(v=>v.alt<=bestAlt).length,perfect:game.perfectLandings,stars:game.starsCollected},
   biome: getBiomeState(game.dist).name,
