@@ -77,7 +77,7 @@ const storage = {
   setItem: (key, value) => records.set(key, value),
 };
 
-const source = match[1] + '\nwindow.__test = { loop, frame:()=>game.frame, energy:v=>game.energy=v, player:()=>game.player, game:()=>game, biome:getBiomeState, records:()=>({bestScore,bestAlt}), fit, setAlt:v=>{game.dist=v;totalScore(game)}, target:nextTarget, rescue:()=>rescueExpedition(game), win:()=>winExpedition(game) }';
+const source = match[1] + '\nwindow.__test = { loop, frame:()=>game.frame, energy:v=>game.energy=v, player:()=>game.player, game:()=>game, biome:getBiomeState, records:()=>({bestScore,bestAlt}), fit, setAlt:v=>{game.dist=v;totalScore(game)}, target:nextTarget, beginBoss:()=>beginBoss(game), bossHit:()=>bossHit(game), bossDamage:()=>bossDamage(game), setWallet:v=>wallet=v, bank:()=>bankRun(game), rescue:()=>rescueExpedition(game), win:()=>winExpedition(game) }';
 new Function('window', 'document', 'localStorage', 'requestAnimationFrame', 'Math', 'performance', source)(
   window, document, storage, () => 1, Math, { now: () => 1000 }
 );
@@ -201,4 +201,18 @@ window.__test.setAlt(250);window.advanceTime(17);
 assert.equal(state().course.medal,3);assert.equal(state().course.unlocked,2);
 assert.equal(JSON.parse(records.get('upjump-campaign-medals'))[1],3);
 element('playBtn').click();assert.equal(state().course.stage,2);assert.equal(state().course.goal,280);
+// Workshop purchases and one-time reward banking
+element('overlayMenuBtn').click();window.__test.setWallet(100);
+element('shopToggle').click();element('shopBuy').click();
+assert.equal(state().economy.upgrades.magnet,1);assert.equal(state().economy.wallet,55);
+element('shopBuy').click();assert.equal(state().economy.wallet,55,'Insufficient funds must not charge');
+window.startGame();window.__test.game().starsCollected=10;window.__test.bank();
+const banked=state().economy.wallet;window.__test.bank();assert.equal(state().economy.wallet,banked);
+window.__test.game().stageIndex=4;window.__test.beginBoss();assert.equal(state().boss.hp,3);
+assert.equal(window.__test.bossHit(),false,'Normal touch cannot hit boss');
+for(let i=0;i<3;i++){window.__test.game().boss.cooldown=0;window.__test.game().boss.attackUsed=false;window.__test.player().boost=20;assert.equal(window.__test.bossHit(),true);}
+assert.equal(state().course.won,true);assert.equal(state().boss.hp,0);
+window.startGame();window.__test.game().stageIndex=9;window.__test.beginBoss();assert.equal(state().boss.maxHp,5);
+for(let i=0;i<3;i++){window.__test.game().boss.invuln=0;window.__test.bossDamage();}
+assert.equal(state().mode,'game_over');
 console.info('UpJump smoke test: portal compliance, DPR, i18n, WASD, Nova, audio, pause, ad hooks, and fixed-step physics passed');
