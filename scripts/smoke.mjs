@@ -88,7 +88,7 @@ const state = () => JSON.parse(window.render_game_to_text());
 
 // 1. Menu & High-DPI check
 assert.equal(state().mode, 'menu');
-assert.equal(state().art.ready,29);assert.equal(state().art.originalReady,22);
+assert.equal(state().art.ready,29);assert.equal(state().art.originalReady,30);
 assert.ok(spriteDraws>0,'PNG render path must draw assets');
 assert.equal(element('gameCanvas').width, 800, 'High-DPI backing width should scale with devicePixelRatio');
 assert.equal(element('gameCanvas').height, 1280, 'High-DPI backing height should scale with devicePixelRatio');
@@ -243,4 +243,17 @@ element('levelNode0').click();assert.equal(state().course.stage,0);
 element('mapToggle').click();assert.equal(element('campaignMap').hidden,true);
 assert.equal(state().music.tracks,3);element('musicBtn').click();assert.equal(state().music.enabled,false);assert.equal(records.get('upjump-music'),'0');
 element('musicBtn').click();assert.equal(state().music.enabled,true);
+// R11 wardrobe and physical hazard tests.
+element('wardrobeToggle').click();window.__test.setWallet(1000);
+const currentSuit=state().progression.suit;
+for(let i=0;i<(5-currentSuit+7)%7;i++)element('wardrobeNext').click();
+element('wardrobeBuy').click();assert.equal(state().progression.suit,5);assert.equal(state().economy.wallet,740);assert.ok(state().economy.ownedSuits.includes(5));
+element('wardrobeBuy').click();assert.equal(state().economy.wallet,740);
+assert.ok(JSON.parse(records.get('upjump-owned-suits')).includes(5));
+element('wardrobeNext').click();element('wardrobeBuy').click();assert.equal(state().progression.suit,6);assert.equal(state().economy.wallet,360);
+window.startGame();let wgame=window.__test.game();wgame.drones=[];wgame.stars=[];wgame.winds=[{x:wgame.player.x-10,y:wgame.player.y-60,w:100,h:160,dir:1,phase:0}];
+window.advanceTime(17);assert.ok(state().hazardCounts.windHits>0,'Wind must affect player');
+const hunter={x:wgame.player.x-100,y:wgame.player.y,w:36,h:22,vx:0,phase:0,kind:'hunter',dead:false};wgame.drones=[hunter];window.advanceTime(17);assert.ok(hunter.vx>0,'Hunter must steer toward player');
+const orbit={x:30,y:wgame.player.y,w:36,h:22,vx:0,phase:0,homeY:wgame.player.y,kind:'orbit',dead:false};wgame.drones=[orbit];window.advanceTime(17);assert.ok(orbit.y!==orbit.homeY,'Orbiter must change altitude');
+wgame.winds=[];wgame.drones=[];const treasure={x:170,y:400,w:60,h:15,type:'normal',vx:0,broken:false,alpha:1,phase:0,visible:1,recoil:0,springAnim:0,risk:true,treasure:true};wgame.platforms=[treasure];wgame.highestBounce=640;wgame.player.x=200-wgame.player.w/2;wgame.player.y=treasure.y-wgame.player.h-1;wgame.player.vx=0;wgame.player.vy=2;window.advanceTime(17);assert.equal(state().economy.bonusRoutes,1);
 console.info('UpJump smoke test: portal compliance, DPR, i18n, WASD, Nova, audio, pause, ad hooks, and fixed-step physics passed');

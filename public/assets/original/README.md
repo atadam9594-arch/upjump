@@ -1,2 +1,2 @@
 # UpJump original art
-22 original SVG game assets authored for this project: 15 pilot poses (5 designs), 5 worlds, 2 guardians. No external dependencies. Kenney CC0 artwork remains available in the separate kenney directory as fallback and for platforms/pickups.
+30 original SVG runtime assets: 21 pilot poses (7 designs), 5 worlds, 2 guardians, 2 enemy designs. Plus cover.svg. No external dependencies. Kenney CC0 artwork remains in the separate kenney directory.
