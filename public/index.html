@@ -461,6 +461,45 @@
     }
   }
 
+  #coach {
+    position: absolute;
+    z-index: 14;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 5px 8px;
+    background: #101e30;
+    border: 1px solid #4e7387;
+    border-radius: 10px;
+    color: #fff5ce;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  #coach[hidden] { display: none; }
+  #skipCoach {
+    min-height: 34px;
+    border: 0;
+    border-radius: 6px;
+    padding: 0 8px;
+    background: #213950;
+    color: white;
+    font: inherit;
+    cursor: pointer;
+  }
+  @media (pointer: coarse), (max-width: 540px) {
+    #skipCoach { min-height: 44px; }
+    #mobileMoveControls button { width: clamp(44px, 15vw, 60px); }
+  }
+  @media (max-height: 530px) {
+    #overlay { padding: 10px; }
+    .overlay-card { max-height: 100%; overflow-y: auto; }
+    #menuGuide { display: none; }
+  }
+
   /* Overlay Layer */
   #overlay {
     z-index: 20;
@@ -752,6 +791,10 @@
       <div class="track"><div id="energyFill"></div></div>
     </div>
 
+    <div id="coach" hidden>
+      <span id="coachTip"></span>
+      <button id="skipCoach" type="button"></button>
+    </div>
     <div id="banner" role="status" aria-live="polite"></div>
 
     <button id="novaBtn" type="button" aria-label="Nova Dash kullan" disabled hidden>NOVA</button>
@@ -843,6 +886,8 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const W = 400, H = 640, STEP = 1000 / 60, TAU = Math.PI * 2;
+const portalBuild = /* CRAZYGAMES_BUILD */ false;
+const touchLayout = () => window.matchMedia?.('(pointer: coarse), (max-width: 540px)').matches ?? false;
 const PT = { N: 'normal', M: 'moving', S: 'spring', C: 'crumble', P: 'phase' };
 const MODES = { MENU: 'menu', PLAY: 'playing', PAUSE: 'paused', OVER: 'game_over' };
 
@@ -865,9 +910,9 @@ const SVG_ICONS = {
 
 // 5 Seamless Atmospheric Altitude Biomes
 const BIOMES = [
-  { alt: 0,    top: [6, 16, 30],   mid: [14, 38, 62],  bot: [7, 20, 36],   glowA: [83, 245, 208],  glowB: [255, 143, 107], nameEn: 'Twilight Skyline', nameTr: 'Alacakaranlık' },
-  { alt: 220,  top: [6, 22, 38],   mid: [14, 58, 76],  bot: [8, 28, 44],   glowA: [83, 245, 208],  glowB: [124, 199, 255], nameEn: 'Aurora Canopy',    nameTr: 'Aurora Katmanı' },
-  { alt: 520,  top: [14, 17, 48],  mid: [38, 34, 80],  bot: [18, 25, 54],  glowA: [190, 118, 255], glowB: [255, 166, 107], nameEn: 'Stratosphere',     nameTr: 'Stratosfer' },
+  { alt: 0,    top: [6, 16, 30],   mid: [14, 38, 62],  bot: [7, 20, 36],   glowA: [83, 245, 208],  glowB: [255, 143, 107], nameEn: 'Rooftops', nameTr: 'Çatılar' },
+  { alt: 75,  top: [6, 22, 38],   mid: [14, 58, 76],  bot: [8, 28, 44],   glowA: [83, 245, 208],  glowB: [124, 199, 255], nameEn: 'Antenna District', nameTr: 'Antenler' },
+  { alt: 180,  top: [14, 17, 48],  mid: [38, 34, 80],  bot: [18, 25, 54],  glowA: [190, 118, 255], glowB: [255, 166, 107], nameEn: 'Cloud Layer', nameTr: 'Bulutlar' },
   { alt: 900,  top: [6, 10, 28],   mid: [18, 26, 60],  bot: [9, 15, 36],   glowA: [124, 199, 255], glowB: [255, 209, 102], nameEn: 'Orbital Horizon',  nameTr: 'Yörünge Ufku' },
   { alt: 1400, top: [4, 6, 16],    mid: [13, 16, 38],  bot: [5, 9, 22],    glowA: [255, 209, 102], glowB: [83, 245, 208],  nameEn: 'Deep Nova',        nameTr: 'Derin Nova' },
 ];
@@ -887,7 +932,15 @@ const I18N = {
     score: 'Skor',
     combo: 'Zincir',
     energy: 'Nova Enerjisi',
-    energyReady: 'HAZIR · SPACE',
+    energyReady: 'HAZIR',
+    coachMove: '← / →  Yön ver',
+    coachTouch: '◀ ▶  Okları basılı tut',
+    coachStars: '★  Işıklı yıldızları topla',
+    coachNova: '⚡  Drone için Nova kullan',
+    coachSkip: 'Atla',
+    nextRegion: (name, meters) => `${name} · ${meters} m kaldı`,
+    nextBest: points => `Rekoru geçmek için ${points} puan daha`,
+    route: 'Sol: güvenli rota · Sağ: drone bonusu',
     altitude: 'İrtifa',
     drones: 'Drone',
     missions: 'Görev',
@@ -908,7 +961,7 @@ const I18N = {
     guide1: 'Yıldız topla',
     guide2: '%100 Nova Dash',
     guide3: 'Drone parçala',
-    controls: '←/→ veya A/D ile yön ver · Space: Nova Dash · P/Esc: Duraklat · M: Ses',
+    controls: '←/→ veya A/D ile yön ver · Space: Nova Dash · P: Duraklat · M: Ses',
     missionCollect: n => `${n} yıldız topla`,
     missionSpring: n => `${n} yaylı platforma bas`,
     missionNova: n => `Nova Dash ile ${n} drone kır`,
@@ -917,7 +970,6 @@ const I18N = {
     bannerSpring: 'YAY FIRLATIŞI',
     bannerBest: 'YENİ REKOR!',
     bannerSmash: 'DRONE PARÇALANDI!',
-    hintMove: '← / → veya A / D',
     ariaPause: 'Oyunu duraklat',
     ariaResume: 'Oyuna devam et',
     ariaMute: 'Sesi kapat',
@@ -930,7 +982,15 @@ const I18N = {
     score: 'Score',
     combo: 'Combo',
     energy: 'Nova Energy',
-    energyReady: 'READY · SPACE',
+    energyReady: 'READY',
+    coachMove: '← / →  Steer left or right',
+    coachTouch: '◀ ▶  Hold an arrow to steer',
+    coachStars: '★  Follow the glowing stars',
+    coachNova: '⚡  Use Nova on the drone',
+    coachSkip: 'Skip',
+    nextRegion: (name, meters) => `${name} · ${meters} m to go`,
+    nextBest: points => `${points} points to beat your best`,
+    route: 'Left: safe route · Right: drone bonus',
     altitude: 'Altitude',
     drones: 'Drones',
     missions: 'Missions',
@@ -951,7 +1011,7 @@ const I18N = {
     guide1: 'Collect Stars',
     guide2: '100% Nova Dash',
     guide3: 'Smash Drones',
-    controls: 'Move: ←/→ or A/D · Nova Dash: Space · Pause: P/Esc · Mute: M',
+    controls: 'Move: ←/→ or A/D · Nova Dash: Space · Pause: P · Mute: M',
     missionCollect: n => `Collect ${n} stars`,
     missionSpring: n => `Hit ${n} spring pads`,
     missionNova: n => `Smash ${n} drone with Nova`,
@@ -960,7 +1020,6 @@ const I18N = {
     bannerSpring: 'SPRING LAUNCH',
     bannerBest: 'NEW HIGH SCORE!',
     bannerSmash: 'DRONE SMASH!',
-    hintMove: '← / → or A / D',
     ariaPause: 'Pause game',
     ariaResume: 'Resume game',
     ariaMute: 'Mute audio',
@@ -980,6 +1039,9 @@ const dom = {
   energyTitle: document.getElementById('energyTitle'),
   energyFill: document.getElementById('energyFill'),
   energyLabel: document.getElementById('energyLabel'),
+  coach: document.getElementById('coach'),
+  coachTip: document.getElementById('coachTip'),
+  skipCoach: document.getElementById('skipCoach'),
   missionWrap: document.getElementById('missionWrap'),
   mission: document.getElementById('missionPill'),
   missionBar: document.getElementById('missionBar'),
@@ -1041,7 +1103,7 @@ function detectInitialLang() {
   return navLang.startsWith('tr') ? 'tr' : 'en';
 }
 
-const input = { left: false, right: false, pointerX: null, boost: false };
+const input = { left: false, right: false, touchLeft: false, touchRight: false, pointerX: null, boost: false };
 let lang = detectInitialLang();
 let bestScore = loadInt('upjump-best');
 let bestAlt = loadInt('upjump-best-alt');
@@ -1354,7 +1416,7 @@ function missionText(m) {
 // Biome Interpolation
 function getBiomeState(alt) {
   let idx = 0;
-  for (let i = 0; i < BIOMES.length - 1; i++) {
+  for (let i = 0; i < BIOMES.length; i++) {
     if (alt >= BIOMES[i].alt) idx = i;
   }
   const curr = BIOMES[idx];
@@ -1400,8 +1462,10 @@ function createGame(mode = MODES.MENU) {
     shake: 0,
     hitStop: 0,
     flash: 0,
+    coaching: mode === MODES.PLAY && safeStorage.get('upjump-coach-v1') !== '1',
+    trainingDrone: null,
     movedOnce: false,
-    hintAlpha: 1,
+    routeAnnounced: false,
     endReason: 'fall',
     lastPlatformCenter: W / 2,
     fragileStreak: 0,
@@ -1439,9 +1503,37 @@ function createGame(mode = MODES.MENU) {
     type: PT.N, vx: 0, broken: false, alpha: 1, phase: 0, visible: 1, recoil: 0, springAnim: 0,
   });
 
-  for (let y = H - 166; y > -2200; y -= 82) spawnLayer(g, y);
-  g.genY = -2200;
+  if (g.coaching) {
+    addPlatform(g, 200, 320, 176);
+    addPlatform(g, 200, 238, 148);
+    for (const [x, y] of [[200, 470], [222, 424], [222, 378], [256, 332]]) {
+      g.stars.push({ x, y, kind: 'star', t: 0, dead: false, training: true });
+    }
+    g.genY = 156;
+  } else {
+    g.genY = H - 166;
+  }
+  while (g.genY > -2200) {
+    spawnLayer(g, g.genY);
+    g.genY -= 82;
+  }
   return g;
+}
+
+function addPlatform(g, center, y, width, type = PT.N) {
+  const platform = {
+    x: center - width / 2, y, w: width, h: 15, type,
+    vx: 0, broken: false, alpha: 1, phase: 0, visible: 1, recoil: 0, springAnim: 0,
+  };
+  g.platforms.push(platform);
+  return platform;
+}
+
+function finishCoach(g) {
+  if (!g.coaching) return;
+  g.coaching = false;
+  if (g.trainingDrone) g.trainingDrone.dead = true;
+  safeStorage.set('upjump-coach-v1', '1');
 }
 
 function spawnLayer(g, y) {
@@ -1454,8 +1546,29 @@ function spawnLayer(g, y) {
   else if (r < 0.35 + d * 0.06) type = PT.C;
   else if (r < 0.43 + d * 0.05) type = PT.P;
 
-  const opening = y > H - 420;
+  const opening = y > -520;
+  const altitude = (H * 0.42 - y) / 10;
   if (opening) type = PT.N;
+  else if (altitude < 175) type = r < 0.42 ? PT.M : PT.N;
+  else if (altitude < 270) type = r < 0.4 ? PT.S : r < 0.58 ? PT.M : PT.N;
+
+  // The first fork covers two landings before the lanes meet again.
+  if (y <= -500 && y > -664) {
+    const safe = addPlatform(g, 115, y, 134);
+    const risk = addPlatform(g, 289, y, 60, PT.S);
+    if (y > -582) {
+      safe.route = 'safe';
+      risk.route = 'risk';
+    }
+    g.stars.push({ x: 115, y: y - 25, kind: 'star', t: 0, dead: false });
+    g.stars.push({ x: 289, y: y - 26, kind: 'orb', t: 0, dead: false });
+    if (y > -582) {
+      g.drones.push({ x: 276, y: y - 184, w: 36, h: 22, vx: 0.45,
+        anchorX: 276, range: 31, phase: 0, dead: false });
+    }
+    g.lastPlatformCenter = W / 2;
+    return;
+  }
 
   if (type === PT.C || type === PT.P) {
     if (g.fragileStreak >= 2 || y > H - 300) {
@@ -1468,12 +1581,16 @@ function spawnLayer(g, y) {
     g.fragileStreak = 0;
   }
 
-  const w = type === PT.S ? 76 : type === PT.P ? 70 : 82;
+  const approach = y <= 155 && y > -500;
+  const recharge = approach && y <= -65 && y > -394;
+  const w = approach ? 100 : type === PT.S ? 76 : type === PT.P ? 70 : 82;
   // Spread platforms from the previous center without jumping across the screen edge.
   const maxReach = opening ? 92 : 144;
   const minCenter = Math.max(18 + w / 2, g.lastPlatformCenter - maxReach);
   const maxCenter = Math.min(W - 18 - w / 2, g.lastPlatformCenter + maxReach);
-  const center = y === H - 166 ? W / 2 + 44 : rand(minCenter, maxCenter);
+  const center = y === H - 166 ? W / 2 + 44
+    : approach ? W / 2 + (Math.floor(y / 82) % 2 ? 33 : -33)
+      : y <= -664 && y > -746 ? W / 2 : rand(minCenter, maxCenter);
   const px = center - w / 2;
   g.lastPlatformCenter = center;
 
@@ -1481,24 +1598,25 @@ function spawnLayer(g, y) {
   const p = {
     x: px, y, w, h: 15, type,
     vx: type === PT.M ? moveSpeed : 0,
+    anchorX: px,
     broken: false, alpha: 1, phase: rand(0, TAU), visible: 1,
     recoil: 0, springAnim: 0, openingMarker: y === H - 166,
   };
   g.platforms.push(p);
 
   const firstPlatform = y === H - 166;
-  const hasStar = firstPlatform || Math.random() < (type === PT.S ? 0.74 : 0.40 + d * 0.08);
+  const hasStar = firstPlatform || recharge || Math.random() < (type === PT.S ? 0.74 : 0.40 + d * 0.08);
   if (hasStar) {
     g.stars.push({
       x: p.x + p.w / 2,
       y: y - rand(22, 32),
-      kind: !firstPlatform && Math.random() < 0.15 + d * 0.06 ? 'orb' : 'star',
+      kind: recharge || (!firstPlatform && Math.random() < 0.15 + d * 0.06) ? 'orb' : 'star',
       t: rand(0, TAU),
       dead: false,
     });
   }
 
-  if (y < -280 && !hasStar && Math.random() < 0.08 + d * 0.075) {
+  if (altitude >= 175 && !hasStar && Math.random() < 0.08 + d * 0.075) {
     const dx = clamp(p.x + (p.x > W / 2 ? -rand(68, 120) : rand(68, 120)), 22, W - 56);
     g.drones.push({
       x: dx,
@@ -1561,7 +1679,7 @@ function addEnergy(g, amount) {
 }
 
 function missionHit(g, type) {
-  if (g.mission.type !== type) return;
+  if (g.coaching || g.mission.type !== type) return;
   g.mission.progress += 1;
   if (g.mission.progress >= g.mission.target) {
     g.bonus += 180;
@@ -1597,8 +1715,9 @@ function solid(p) { return !p.broken && (p.type !== PT.P || p.visible > 0.38); }
 function jumpPower(type) { return type === PT.S ? 22.4 : type === PT.M ? 15.8 : type === PT.P ? 16.4 : 14.8; }
 
 function moveIntent() {
-  if (input.left && !input.right) return -1;
-  if (input.right && !input.left) return 1;
+  const left = input.left || input.touchLeft;
+  const right = input.right || input.touchRight;
+  if (left || right) return Number(right) - Number(left);
   if (input.pointerX == null) return 0;
   const rect = canvas.getBoundingClientRect();
   const x = input.pointerX - rect.left;
@@ -1611,9 +1730,14 @@ function tryNova(g) {
   if (g.energy < 100 || g.player.boost > 0) return false;
   g.energy = 0;
   g.energyWasFull = false;
-  g.player.boost = 56;
-  g.player.shield = 74;
-  g.player.vy = -24;
+  if (g.coaching && g.trainingDrone) {
+    // Put the practice target in the direction of lift, even during descent.
+    g.trainingDrone.x = g.player.x;
+    g.trainingDrone.y = g.player.y - 101;
+  }
+  g.player.boost = g.coaching ? 14 : 56;
+  g.player.shield = g.coaching ? 18 : 74;
+  g.player.vy = g.coaching ? -15.5 : -24;
   g.player.squash = 0.6;
   g.combo = Math.min(g.combo + 2, 9);
   g.maxCombo = Math.max(g.maxCombo, g.combo);
@@ -1628,6 +1752,7 @@ function tryNova(g) {
 }
 
 function triggerGameOver(g, reason) {
+  if (g.mode !== MODES.PLAY) return;
   g.mode = MODES.OVER;
   g.endReason = reason;
   lastDeathMs = Date.now();
@@ -1636,7 +1761,6 @@ function triggerGameOver(g, reason) {
   sfx.gameOver();
   portal.gameplayStop();
   totalScore(g);
-  updateOverlay();
 }
 
 function updateScarf(pl, anchorX, anchorY) {
@@ -1677,11 +1801,9 @@ function updateGame(g) {
   const pl = g.player;
   const dir = moveIntent();
   if (dir !== 0) g.movedOnce = true;
-  if (g.movedOnce && g.hintAlpha > 0) g.hintAlpha = Math.max(0, g.hintAlpha - 0.04);
-  else if (g.frame > 180 && g.hintAlpha > 0) g.hintAlpha = Math.max(0, g.hintAlpha - 0.02);
-
-  const targetVx = dir * 6.4;
-  pl.vx = lerp(pl.vx, targetVx, dir === 0 ? 0.14 : 0.25);
+  const usingTouch = input.pointerX != null || input.touchLeft || input.touchRight;
+  const targetVx = dir * (usingTouch ? 5.8 : 6.4);
+  pl.vx = lerp(pl.vx, targetVx, dir === 0 ? 0.22 : usingTouch ? 0.33 : 0.27);
   pl.x += pl.vx;
   if (dir) pl.face = dir;
   pl.tilt = lerp(pl.tilt, clamp(pl.vx * 0.04, -0.26, 0.26), 0.22);
@@ -1756,8 +1878,10 @@ function updateGame(g) {
   g.platforms.forEach(p => {
     if (p.type === PT.M) {
       p.x += p.vx;
-      if (p.x < 14) { p.x = 14; p.vx = Math.abs(p.vx); }
-      if (p.x + p.w > W - 14) { p.x = W - 14 - p.w; p.vx = -Math.abs(p.vx); }
+      const lo = Math.max(14, p.anchorX - 36);
+      const hi = Math.min(W - 14 - p.w, p.anchorX + 36);
+      if (p.x < lo) { p.x = lo; p.vx = Math.abs(p.vx); }
+      if (p.x > hi) { p.x = hi; p.vx = -Math.abs(p.vx); }
     }
     if (p.type === PT.P) {
       p.phase += 0.048;
@@ -1788,8 +1912,15 @@ function updateGame(g) {
   g.drones.forEach(d => {
     d.x += d.vx;
     d.phase += 0.16;
-    if (d.x < 16) { d.x = 16; d.vx = Math.abs(d.vx); }
-    if (d.x + d.w > W - 16) { d.x = W - 16 - d.w; d.vx = -Math.abs(d.vx); }
+    if (d === g.trainingDrone) {
+      d.x = pl.x;
+      if (pl.boost === 0) d.y = pl.y - 101;
+      return;
+    }
+    const low = d.range ? d.anchorX - d.range : 16;
+    const high = d.range ? d.anchorX + d.range : W - 16 - d.w;
+    if (d.x < low) { d.x = low; d.vx = Math.abs(d.vx); }
+    if (d.x > high) { d.x = high; d.vx = -Math.abs(d.vx); }
   });
 
   g.particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.grav; p.life--; });
@@ -1887,22 +2018,28 @@ function updateGame(g) {
       s.dead = true;
       const bonus = (s.kind === 'orb' ? 75 : 25) + g.combo * 5;
       g.bonus += bonus;
-      addEnergy(g, s.kind === 'orb' ? 44 : 18);
+      addEnergy(g, s.training && g.coaching ? 28 : s.kind === 'orb' ? 44 : 18);
       if (s.kind === 'orb') sfx.orb(); else sfx.star(g.combo);
       const col = s.kind === 'orb' ? '#53f5d0' : '#ffd166';
       addBurst(g, s.x, s.y, col, s.kind === 'orb' ? 14 : 9, 1.15);
       addRing(g, s.x, s.y, col, s.kind === 'orb' ? 38 : 26, 2.4);
-      addText(g, s.x, s.y - 12, `+${bonus}`, col, s.kind === 'orb' ? 1.18 : 1);
+      addText(g, clamp(s.x + (s.x < W / 2 ? -35 : 35), 24, W - 24), s.y - 22, `+${bonus}`, col, s.kind === 'orb' ? 1.18 : 1);
       if (s.kind === 'star') missionHit(g, 'collect');
     }
   });
 
+  if (g.coaching && g.energy >= 100 && !g.trainingDrone) {
+    g.trainingDrone = { x: pl.x, y: pl.y - 101, w: 36, h: 22, vx: 0, phase: 0, dead: false };
+    g.drones.push(g.trainingDrone);
+  }
+
   // Drone collision
   g.drones.forEach(d => {
-    if (!d.dead && inter(pl, d)) {
+    if (g.mode === MODES.PLAY && !d.dead && inter(pl, d)) {
       if (pl.shield > 0 || pl.boost > 0) {
         d.dead = true;
         g.dronesSmashed += 1;
+        if (d === g.trainingDrone) finishCoach(g);
         const bonus = 140 + g.combo * 12;
         g.bonus += bonus;
         g.hitStop = 3;
@@ -1924,7 +2061,7 @@ function updateGame(g) {
         addText(g, dcx, d.y - 12, `+${bonus}`, '#ffd166', 1.28);
         setBanner(g, t().bannerSmash);
         missionHit(g, 'nova');
-      } else {
+      } else if (d !== g.trainingDrone) {
         triggerGameOver(g, 'drone');
       }
     }
@@ -1937,6 +2074,10 @@ function updateGame(g) {
   }
 
   g.dist = Math.max(g.dist, Math.floor(-g.camY / 10));
+  if (!g.routeAnnounced && g.dist >= 55 && g.dist < 79) {
+    g.routeAnnounced = true;
+    setBanner(g, t().route);
+  }
 
   const bState = getBiomeState(g.dist);
   if (bState.idx > g.biomeIdx) {
@@ -1945,6 +2086,7 @@ function updateGame(g) {
   }
 
   totalScore(g);
+  if (g.mode === MODES.OVER) updateOverlay();
   if (g.bannerTimer > 0) g.bannerTimer--;
   g.shake *= 0.84;
   if (g.shake < 0.2) g.shake = 0;
@@ -2151,13 +2293,42 @@ function drawBackground(g, biome) {
   ctx.restore();
 
   // Volumetric Sculpted Parallax Clouds (fade smoothly above stratosphere)
-  const cloudAlpha = clamp(1 - Math.max(0, g.dist - 360) / 280, 0, 0.16);
-  if (cloudAlpha > 0.01) {
+  const cloudAlpha = 0.12 + 0.22 * clamp((g.dist - 145) / 80, 0, 1);
+  const cloudVisibility = cloudAlpha * (1 - clamp((g.dist - 500) / 260, 0, 1));
+  if (cloudVisibility > 0.01) {
     for (let i = 0; i < 4; i++) {
       const cx = ((i * 130 + ambientT * (0.14 + (i % 2) * 0.07)) % (W + 170)) - 85;
       const cy = ((i * 185 - g.camY * (0.14 + (i % 2) * 0.04)) % (H + 160) + (H + 160)) % (H + 160) - 80;
-      drawCloud(cx, cy, 0.72 + (i % 3) * 0.18, cloudAlpha);
+      drawCloud(cx, cy, 0.72 + (i % 3) * 0.18, cloudVisibility);
     }
+  }
+
+  // Antenna silhouettes establish a separate middle section.
+  const antennaAlpha = clamp((g.dist - 47) / 35, 0, 1) * clamp((190 - g.dist) / 45, 0, 1);
+  if (antennaAlpha > 0) {
+    ctx.save();
+    ctx.globalAlpha = antennaAlpha;
+    for (const [x, y, height] of [[40, 490, 210], [121, 567, 120], [350, 482, 190]]) {
+      const base = y + (g.dist - 90) * 0.85;
+      ctx.strokeStyle = 'rgba(14,30,54,0.85)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x - 30, base + 140);
+      ctx.lineTo(x, base - height);
+      ctx.lineTo(x + 30, base + 140);
+      for (let brace = 0; brace < 4; brace++) {
+        const top = base - height + 54 + brace * 56;
+        const span = 7 + brace * 5;
+        ctx.moveTo(x - span, top);
+        ctx.lineTo(x + span, top + 48);
+        ctx.moveTo(x - span, top + 48);
+        ctx.lineTo(x + span, top);
+      }
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255,155,121,0.58)';
+      ctx.fillRect(x - 2, base - height - 4, 4, 4);
+    }
+    ctx.restore();
   }
 
   // Layered Launch Skyline & Mountain Ridge near ground
@@ -2431,6 +2602,15 @@ function drawPlatform(p, sy) {
   }
 
   ctx.globalAlpha = p.alpha;
+  if (p.route) {
+    ctx.textAlign = 'center';
+    ctx.font = '800 13px system-ui, sans-serif';
+    ctx.fillStyle = p.route === 'safe' ? '#b8fff3' : '#ffe3ac';
+    const label = p.route === 'safe'
+      ? (lang === 'tr' ? 'GÜVENLİ ROTA' : 'SAFE ROUTE')
+      : (lang === 'tr' ? 'DRONE BONUSU' : 'DRONE BONUS');
+    ctx.fillText(label, p.x + p.w / 2, sy + 34);
+  }
 
   // Soft underside hover-thruster glow (gives platforms depth against the sky)
   if (p.type !== PT.C) {
@@ -2468,9 +2648,7 @@ function drawPlatform(p, sy) {
   ctx.fill();
 
   // Main Platform Top Deck
-  ctx.shadowColor = st.glow;
-  ctx.shadowBlur = p.type === PT.P ? 16 : 10;
-  roundRect(p.x, sy, p.w, p.h - 2, 7);
+  roundRect(p.x, sy, p.w, p.h - 2, p.type === PT.M ? 3 : p.type === PT.S ? 5 : 7);
   const grad = ctx.createLinearGradient(p.x, sy, p.x, sy + p.h - 2);
   grad.addColorStop(0, '#ffffff');
   grad.addColorStop(0.22, st.top);
@@ -2480,8 +2658,8 @@ function drawPlatform(p, sy) {
   ctx.shadowBlur = 0;
 
   // Specular top edge strip
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.36)';
-  roundRect(p.x + 6, sy + 1.8, p.w - 12, 3, 1.5);
+  ctx.fillStyle = st.top;
+  roundRect(p.x + 4, sy, p.w - 8, 2.4, 1);
   ctx.fill();
 
   // Platform-specific mechanical details (non-hue-only affordances)
@@ -2802,17 +2980,6 @@ function drawGame(g) {
     ctx.fillRect(0, 0, W, H);
   }
 
-  // First-run subtle movement cue
-  if (g.mode === MODES.PLAY && g.hintAlpha > 0.02) {
-    ctx.save();
-    ctx.globalAlpha = g.hintAlpha * 0.82;
-    ctx.fillStyle = '#dff6ff';
-    ctx.font = '700 13px "Avenir Next", system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(t().hintMove, W / 2, H - 120);
-    ctx.restore();
-  }
-
   // Floating Score Texts
   g.texts.forEach(tx => {
     const a = clamp(tx.life / tx.max, 0, 1);
@@ -2857,14 +3024,21 @@ function syncHud() {
   dom.combo.classList.toggle('hot', game.combo >= 3);
 
   dom.energyFill.style.width = `${energyPct}%`;
-  dom.energyLabel.textContent = ready ? s.energyReady : `${energyPct}%`;
+  dom.energyLabel.textContent = ready ? `${s.energyReady} · ${touchLayout() ? 'NOVA' : 'SPACE'}` : `${energyPct}%`;
+  dom.coach.hidden = game.mode !== MODES.PLAY || !game.coaching;
+  if (!dom.coach.hidden) {
+    const tip = ready ? s.coachNova : game.trainingDrone ? s.coachNova
+      : game.movedOnce || game.frame > 65 ? s.coachStars : touchLayout() ? s.coachTouch : s.coachMove;
+    if (dom.coachTip.textContent !== tip) dom.coachTip.textContent = tip;
+    dom.skipCoach.textContent = s.coachSkip;
+  }
   if (dom.energyPanel) dom.energyPanel.classList.toggle('ready', ready);
 
   dom.mission.textContent = `${missionText(game.mission)} (${game.mission.progress}/${game.mission.target})`;
   if (dom.missionBar) {
     dom.missionBar.style.width = `${Math.round((game.mission.progress / game.mission.target) * 100)}%`;
   }
-  if (dom.missionWrap) dom.missionWrap.hidden = game.mode === MODES.MENU;
+  if (dom.missionWrap) dom.missionWrap.hidden = game.mode !== MODES.PLAY || game.coaching;
 
   dom.banner.textContent = game.banner;
   dom.banner.classList.toggle('show', game.bannerTimer > 0 && game.mode === MODES.PLAY);
@@ -2944,7 +3118,10 @@ function updateOverlay() {
   } else {
     dom.overlayKicker.textContent = game.endReason === 'drone' ? s.overDrone : s.overFall;
     dom.overlayTitle.textContent = s.overTitle;
-    dom.overlayLead.textContent = s.overLead;
+    const next = BIOMES.find(region => region.alt > game.dist);
+    dom.overlayLead.textContent = next
+      ? s.nextRegion(lang === 'tr' ? next.nameTr : next.nameEn, next.alt - game.dist)
+      : game.beatBestInRun ? s.overLead : s.nextBest(bestScore - game.score + 1);
     dom.playBtn.textContent = s.tryAgain;
     dom.overlayStats.innerHTML = statsHtml([
       [game.score, s.score],
@@ -2978,7 +3155,7 @@ function fit() {
 
   if (dom.fullscreenBtn) {
     const canFs = !!(document && (document.fullscreenEnabled || dom.wrapper.requestFullscreen));
-    dom.fullscreenBtn.hidden = !canFs;
+    dom.fullscreenBtn.hidden = portalBuild || !canFs;
   }
 }
 
@@ -2990,11 +3167,17 @@ function render() {
 function resetControls() {
   input.left = false;
   input.right = false;
+  input.touchLeft = false;
+  input.touchRight = false;
+  dom.mobileLeftBtn.classList.remove('pressed');
+  dom.mobileRightBtn.classList.remove('pressed');
+  steeringPointerId = null;
   input.pointerX = null;
   input.boost = false;
 }
 
 function startGame() {
+  portal.gameplayStop();
   resetControls();
   totalRuns += 1;
   safeStorage.set('upjump-runs', totalRuns);
@@ -3016,6 +3199,7 @@ function openMenu() {
 
 function primaryAction() {
   if (game.mode === MODES.MENU || game.mode === MODES.OVER) {
+    dom.playBtn.blur?.();
     startGame();
   } else if (game.mode === MODES.PAUSE) {
     game.mode = MODES.PLAY;
@@ -3041,6 +3225,7 @@ function togglePause() {
 }
 
 async function toggleFullscreen() {
+  if (portalBuild) return;
   try {
     if (document.fullscreenElement) await document.exitFullscreen();
     else if (dom.wrapper.requestFullscreen) await dom.wrapper.requestFullscreen();
@@ -3075,9 +3260,10 @@ function loop(ts) {
   rafId = requestAnimationFrame(loop);
 }
 
-// Keyboard Controls (Arrows + WASD + Space/Shift/Up + M/P/Esc/F/R)
+// Keyboard Controls (Arrows + WASD + Space/Shift/Up + M/P/F/R)
 document.addEventListener('keydown', e => {
   const k = e.key;
+  if (e.target?.tagName === 'BUTTON' && (k === 'Enter' || k === ' ')) return;
   if (k === 'ArrowLeft' || k === 'a' || k === 'A') { input.left = true; e.preventDefault(); }
   if (k === 'ArrowRight' || k === 'd' || k === 'D') { input.right = true; e.preventDefault(); }
   if (k === 'ArrowUp' || k === 'ArrowDown') e.preventDefault();
@@ -3096,7 +3282,7 @@ document.addEventListener('keydown', e => {
     unlockAudio();
     primaryAction();
   }
-  if ((k === 'p' || k === 'P' || k === 'Escape') && !e.repeat) togglePause();
+  if ((k === 'p' || k === 'P' || (!portalBuild && k === 'Escape')) && !e.repeat) togglePause();
   if ((k === 'm' || k === 'M') && !e.repeat) toggleSound();
   if ((k === 'f' || k === 'F') && !e.repeat) toggleFullscreen();
   if ((k === 'r' || k === 'R') && !e.repeat && (game.mode === MODES.OVER || game.mode === MODES.PAUSE)) {
@@ -3136,22 +3322,13 @@ function endSteering(e) {
 }
 canvas.addEventListener('pointerup', endSteering);
 canvas.addEventListener('pointercancel', endSteering);
+canvas.addEventListener('lostpointercapture', endSteering);
 canvas.addEventListener('contextmenu', e => e.preventDefault());
-
-canvas.addEventListener('touchstart', e => {
-  if (game.mode === MODES.PLAY) { e.preventDefault(); unlockAudio(); setPointer(e); }
-}, { passive: false });
-canvas.addEventListener('touchmove', e => {
-  if (game.mode === MODES.PLAY) { e.preventDefault(); setPointer(e); }
-}, { passive: false });
-canvas.addEventListener('touchend', () => { input.pointerX = null; }, { passive: true });
-canvas.addEventListener('touchcancel', () => { input.pointerX = null; }, { passive: true });
 
 // Auto-Pause on Tab Hidden / Focus Lost
 function onFocusLost() {
   if (game && game.mode === MODES.PLAY) togglePause();
   resetControls();
-  steeringPointerId = null;
   suspendAudio();
 }
 window.addEventListener('blur', onFocusLost);
@@ -3174,6 +3351,7 @@ dom.novaBtn.addEventListener('click', e => {
 });
 
 function bindMobileMove(button, direction) {
+  const property = direction === 'left' ? 'touchLeft' : 'touchRight';
   let activePointer = null;
   button.addEventListener('pointerdown', e => {
     if (game.mode !== MODES.PLAY) return;
@@ -3181,21 +3359,22 @@ function bindMobileMove(button, direction) {
     e.stopPropagation();
     unlockAudio();
     activePointer = e.pointerId;
-    input[direction] = true;
+    input[property] = true;
     button.classList.add('pressed');
     try { button.setPointerCapture(e.pointerId); } catch {}
   });
   const release = e => {
     if (activePointer !== e.pointerId) return;
-    input[direction] = false;
+    input[property] = false;
     activePointer = null;
     button.classList.remove('pressed');
   };
   button.addEventListener('pointerup', release);
   button.addEventListener('pointercancel', release);
+  button.addEventListener('lostpointercapture', release);
   button.addEventListener('contextmenu', e => e.preventDefault());
   window.addEventListener('blur', () => {
-    input[direction] = false;
+    input[property] = false;
     activePointer = null;
     button.classList.remove('pressed');
   });
@@ -3204,6 +3383,11 @@ bindMobileMove(dom.mobileLeftBtn, 'left');
 bindMobileMove(dom.mobileRightBtn, 'right');
 
 // UI Buttons
+dom.skipCoach.addEventListener('click', () => {
+  finishCoach(game);
+  dom.skipCoach.blur?.();
+  syncHud();
+});
 dom.soundBtn.addEventListener('click', toggleSound);
 if (dom.fullscreenBtn) dom.fullscreenBtn.addEventListener('click', toggleFullscreen);
 dom.overlayMenuBtn.addEventListener('click', openMenu);
@@ -3238,6 +3422,8 @@ window.render_game_to_text = () => JSON.stringify({
     altitude: game.dist,
     combo: game.combo,
     energy: Math.round(game.energy),
+    coaching: game.coaching,
+    dronesSmashed: game.dronesSmashed,
     mission: `${missionText(game.mission)} (${game.mission.progress}/${game.mission.target})`,
   },
   platforms: game.platforms.filter(p => p.y - game.camY > -40 && p.y - game.camY < H + 40).slice(0, 12).map(p => ({
