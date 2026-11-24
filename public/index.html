@@ -1403,7 +1403,7 @@ function createGame(mode = MODES.MENU) {
     movedOnce: false,
     hintAlpha: 1,
     endReason: 'fall',
-    lastSafeX: W / 2 - 44,
+    lastPlatformCenter: W / 2,
     fragileStreak: 0,
     mission: createMission(),
     platforms: [],
@@ -1454,6 +1454,9 @@ function spawnLayer(g, y) {
   else if (r < 0.35 + d * 0.06) type = PT.C;
   else if (r < 0.43 + d * 0.05) type = PT.P;
 
+  const opening = y > H - 420;
+  if (opening) type = PT.N;
+
   if (type === PT.C || type === PT.P) {
     if (g.fragileStreak >= 2 || y > H - 300) {
       type = PT.N;
@@ -1466,31 +1469,30 @@ function spawnLayer(g, y) {
   }
 
   const w = type === PT.S ? 76 : type === PT.P ? 70 : 82;
-  const maxReach = 185;
-  let px;
-  if (Math.random() < 0.72) {
-    const raw = g.lastSafeX + rand(-maxReach, maxReach);
-    px = ((raw % (W - 36 - w)) + (W - 36 - w)) % (W - 36 - w) + 18;
-  } else {
-    px = rand(18, W - 18 - w);
-  }
-  if (type !== PT.C && type !== PT.P) g.lastSafeX = px;
+  // Spread platforms from the previous center without jumping across the screen edge.
+  const maxReach = opening ? 92 : 144;
+  const minCenter = Math.max(18 + w / 2, g.lastPlatformCenter - maxReach);
+  const maxCenter = Math.min(W - 18 - w / 2, g.lastPlatformCenter + maxReach);
+  const center = y === H - 166 ? W / 2 + 44 : rand(minCenter, maxCenter);
+  const px = center - w / 2;
+  g.lastPlatformCenter = center;
 
   const moveSpeed = (1.35 + d * 0.55) * (Math.random() > 0.5 ? 1 : -1);
   const p = {
     x: px, y, w, h: 15, type,
     vx: type === PT.M ? moveSpeed : 0,
     broken: false, alpha: 1, phase: rand(0, TAU), visible: 1,
-    recoil: 0, springAnim: 0,
+    recoil: 0, springAnim: 0, openingMarker: y === H - 166,
   };
   g.platforms.push(p);
 
-  const hasStar = Math.random() < (type === PT.S ? 0.74 : 0.40 + d * 0.08);
+  const firstPlatform = y === H - 166;
+  const hasStar = firstPlatform || Math.random() < (type === PT.S ? 0.74 : 0.40 + d * 0.08);
   if (hasStar) {
     g.stars.push({
       x: p.x + p.w / 2,
       y: y - rand(22, 32),
-      kind: Math.random() < 0.15 + d * 0.06 ? 'orb' : 'star',
+      kind: !firstPlatform && Math.random() < 0.15 + d * 0.06 ? 'orb' : 'star',
       t: rand(0, TAU),
       dead: false,
     });
@@ -2390,6 +2392,13 @@ function drawPlayerSprite(pl, sx, sy, idleBob = 0, ghostAlpha = 1) {
 function drawPlatform(p, sy) {
   const st = STYLE[p.type];
   ctx.save();
+
+  if (p.openingMarker) {
+    ctx.strokeStyle = 'rgba(110, 240, 255, 0.64)';
+    ctx.lineWidth = 1.6;
+    roundRect(p.x - 4, sy - 4, p.w + 8, p.h + 8, 10);
+    ctx.stroke();
+  }
 
   // Moving platform horizontal maglev track
   if (p.type === PT.M) {
