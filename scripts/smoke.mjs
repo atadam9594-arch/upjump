@@ -191,4 +191,14 @@ element('overlayMenuBtn').click();element('endlessBtn').click();window.startGame
 window.__test.setAlt(220);window.advanceTime(17);
 assert.equal(state().mode,'playing');assert.equal(state().course.mode,'endless');
 assert.ok(window.__test.game().platforms.some(p=>p.risk),'Risk route must be generated');
+// Campaign progression and deterministic first route
+element('overlayMenuBtn').click();element('expeditionBtn').click();element('stageNext').click();window.startGame();
+assert.equal(state().course.stage,1);assert.equal(state().course.goal,250);
+const route=JSON.stringify(window.__test.game().platforms.map(p=>[p.x,p.y,p.type]));
+window.startGame();assert.equal(JSON.stringify(window.__test.game().platforms.map(p=>[p.x,p.y,p.type])),route,'Campaign route must be replayable');
+window.__test.game().starsCollected=100;window.__test.game().perfectLandings=100;
+window.__test.setAlt(250);window.advanceTime(17);
+assert.equal(state().course.medal,3);assert.equal(state().course.unlocked,2);
+assert.equal(JSON.parse(records.get('upjump-campaign-medals'))[1],3);
+element('playBtn').click();assert.equal(state().course.stage,2);assert.equal(state().course.goal,280);
 console.info('UpJump smoke test: portal compliance, DPR, i18n, WASD, Nova, audio, pause, ad hooks, and fixed-step physics passed');
