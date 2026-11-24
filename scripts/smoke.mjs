@@ -79,7 +79,7 @@ const storage = {
   setItem: (key, value) => records.set(key, value),
 };
 
-const source = match[1] + '\nwindow.__test = { loop, frame:()=>game.frame, energy:v=>game.energy=v, player:()=>game.player, game:()=>game, biome:getBiomeState, records:()=>({bestScore,bestAlt}), fit, setAlt:v=>{game.dist=v;totalScore(game)}, target:nextTarget, beginBoss:()=>beginBoss(game), bossHit:()=>bossHit(game), bossDamage:()=>bossDamage(game), setWallet:v=>wallet=v, bank:()=>bankRun(game), rescue:()=>rescueExpedition(game), win:()=>winExpedition(game) }';
+const source = match[1] + '\nwindow.__test = { loop, frame:()=>game.frame, energy:v=>game.energy=v, player:()=>game.player, game:()=>game, biome:getBiomeState, records:()=>({bestScore,bestAlt}), fit, setAlt:v=>{game.dist=v;totalScore(game)}, target:nextTarget, reload:()=>reloadProgress(),cloud:v=>{cloudStorage=v;reloadProgress()}, beginBoss:()=>beginBoss(game), bossHit:()=>bossHit(game), bossDamage:()=>bossDamage(game), setWallet:v=>wallet=v, bank:()=>bankRun(game), rescue:()=>rescueExpedition(game), win:()=>winExpedition(game) }';
 new Function('window', 'document', 'localStorage', 'requestAnimationFrame', 'Math', 'performance', source)(
   window, document, storage, () => 1, Math, { now: () => 1000 }
 );
@@ -88,7 +88,7 @@ const state = () => JSON.parse(window.render_game_to_text());
 
 // 1. Menu & High-DPI check
 assert.equal(state().mode, 'menu');
-assert.equal(state().art.ready,29);assert.equal(state().art.originalReady,36);
+assert.equal(state().art.ready,29);assert.equal(state().art.originalReady,41);
 assert.ok(spriteDraws>0,'PNG render path must draw assets');
 assert.equal(element('gameCanvas').width, 800, 'High-DPI backing width should scale with devicePixelRatio');
 assert.equal(element('gameCanvas').height, 1280, 'High-DPI backing height should scale with devicePixelRatio');
@@ -263,4 +263,14 @@ window.innerWidth=320;window.innerHeight=420;window.__test.fit();
 assert.ok(parseInt(element('gameWrapper').style.height)<=420);assert.ok(parseInt(element('gameWrapper').style.width)<=320);
 assert.equal(state().portalPending,false);
 assert.ok(html.indexOf('id="playBtn"')<html.indexOf('id="wardrobeToggle"'),'Primary play action precedes optional customization');
+// R13 bonus route, quality and cloud save adapter.
+element('overlayMenuBtn').click();element('bonusBtn').click();window.startGame();
+assert.equal(state().course.mode,'bonus');assert.equal(state().course.goal,120);assert.equal(window.__test.game().drones.length,0);
+window.__test.game().starsCollected=31;window.__test.setAlt(120);window.advanceTime(17);assert.equal(state().course.won,true);assert.equal(state().bonusBest,31);
+element('overlayMenuBtn').click();element('qualityBtn').click();assert.equal(state().quality,'low');assert.ok(element('gameCanvas').width<=500);
+element('qualityBtn').click();assert.equal(state().quality,'auto');
+const cloudRecords=new Map([['upjump-wallet','500'],['upjump-best-alt','520'],['upjump-campaign-medals','[3,2,1]']]);
+window.__test.cloud({getItem:k=>cloudRecords.get(k)??null,setItem:(k,v)=>cloudRecords.set(k,v)});
+assert.equal(state().save.cloud,true);assert.equal(state().economy.wallet,500);assert.equal(state().course.unlocked,3);
+element('langEnBtn').click();assert.equal(cloudRecords.get('upjump-lang'),'en');assert.equal(records.get('upjump-lang'),'tr','Cloud must not overwrite standalone save');
 console.info('UpJump smoke test: portal compliance, DPR, i18n, WASD, Nova, audio, pause, ad hooks, and fixed-step physics passed');

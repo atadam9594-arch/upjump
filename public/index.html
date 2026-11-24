@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="brego-release" content="upjump-sky-polish-20261124-r12">
+<meta name="brego-release" content="upjump-final-flight-20261124-r13">
 <meta property="og:title" content="UpJump — Brego Games Originals">
 <meta property="og:description" content="Leap across ten sky islands, defeat guardians and conquer daily routes. An original arcade adventure for mobile and desktop.">
 <meta property="og:type" content="website"><meta property="og:image" content="https://upjump.pages.dev/assets/original/cover.svg">
@@ -758,7 +758,7 @@ body{background:radial-gradient(ellipse at 25% 15%,#345786 0%,#142749 43%,#090f2
 @media(min-width:1100px) and (min-height:500px){#ascensionRail,#flightRail{width:clamp(150px,16vw,220px);margin:0 12px}.rail-title{font-size:21px}}
 @media(max-height:650px){#heroArt{display:none}#overlayLead{font-size:11px;margin-bottom:5px}#overlayStats{padding:4px 0;margin-bottom:4px}.overlay-card{padding:9px 12px}#playBtn{min-height:38px;padding:9px;margin:2px 0 6px}#suitBtn,#wardrobeToggle,#shopToggle,#musicBtn{min-height:26px;padding:4px}.controls{margin-top:4px}}
 @media(max-width:360px){.hud-top{gap:3px}.score-block{min-width:100px}.icon-btn{width:32px;height:32px}}
-</style>
+#modeSelect{grid-template-columns:repeat(4,1fr);gap:4px}.mode-choice{font-size:10px}#qualityBtn{background:#214764;color:#fff3ba;border:1px solid #a1c9e277;border-radius:7px;font:800 10px system-ui;padding:5px;cursor:pointer;width:100%;margin:2px 0}#saveStatus{font-size:10px;color:#ffe1a4;margin:3px} @media(max-width:360px){.mode-choice{font-size:9px;padding:5px 1px}}</style>
 </head>
 <body>
 <aside id="ascensionRail" aria-hidden="true"><div class="rail-kicker">UPJUMP / 01</div><div class="rail-title" id="railMapTitle">ASCENSION</div><div id="railMap"></div></aside><div id="gameWrapper">
@@ -870,7 +870,7 @@ body{background:radial-gradient(ellipse at 25% 15%,#345786 0%,#142749 43%,#090f2
 
       <div id="overlayStats"></div>
 
-      <div id="modeSelect"><button id="expeditionBtn" class="mode-choice" type="button"></button><button id="endlessBtn" class="mode-choice" type="button"></button><button id="dailyBtn" class="mode-choice" type="button"></button></div><div id="stagePicker" hidden><button type="button" id="stagePrev" aria-label="Previous level">‹</button><div><div id="stageName"></div><div id="stageMedals"></div></div><button type="button" id="stageNext" aria-label="Next level">›</button></div><button id="mapToggle" type="button" hidden></button><div id="campaignMap" hidden><button id="levelNode0" type="button" class="level-node"><span id="levelLabel0"></span><small id="levelStars0"></small></button><button id="levelNode1" type="button" class="level-node"><span id="levelLabel1"></span><small id="levelStars1"></small></button><button id="levelNode2" type="button" class="level-node"><span id="levelLabel2"></span><small id="levelStars2"></small></button><button id="levelNode3" type="button" class="level-node"><span id="levelLabel3"></span><small id="levelStars3"></small></button><button id="levelNode4" type="button" class="level-node"><span id="levelLabel4"></span><small id="levelStars4"></small></button><button id="levelNode5" type="button" class="level-node"><span id="levelLabel5"></span><small id="levelStars5"></small></button><button id="levelNode6" type="button" class="level-node"><span id="levelLabel6"></span><small id="levelStars6"></small></button><button id="levelNode7" type="button" class="level-node"><span id="levelLabel7"></span><small id="levelStars7"></small></button><button id="levelNode8" type="button" class="level-node"><span id="levelLabel8"></span><small id="levelStars8"></small></button><button id="levelNode9" type="button" class="level-node"><span id="levelLabel9"></span><small id="levelStars9"></small></button></div><p id="modeBrief"></p><button id="playBtn" type="button">BAŞLA</button><div id="badgeSummary" hidden></div><button id="suitBtn" type="button"></button><button id="wardrobeToggle" type="button"></button><div id="wardrobePanel" hidden><div id="wardrobeWallet"></div><div id="wardrobeControls"><button id="wardrobePrev" type="button">‹</button><div><img id="wardrobeImage" alt="" src="./assets/original/pilot0_rise.svg"><div id="wardrobeName"></div></div><button id="wardrobeNext" type="button">›</button></div><button id="wardrobeBuy" type="button"></button></div><button id="shopToggle" type="button"></button><button id="musicBtn" type="button"></button><div id="shopPanel" hidden><div id="shopWallet"></div><div id="shopControls"><button id="shopPrev" type="button">‹</button><div id="shopItem"></div><button id="shopNext" type="button">›</button></div><button id="shopBuy" type="button"></button></div>
+      <div id="modeSelect"><button id="expeditionBtn" class="mode-choice" type="button"></button><button id="endlessBtn" class="mode-choice" type="button"></button><button id="dailyBtn" class="mode-choice" type="button"></button><button id="bonusBtn" class="mode-choice" type="button"></button></div><div id="stagePicker" hidden><button type="button" id="stagePrev" aria-label="Previous level">‹</button><div><div id="stageName"></div><div id="stageMedals"></div></div><button type="button" id="stageNext" aria-label="Next level">›</button></div><button id="mapToggle" type="button" hidden></button><div id="campaignMap" hidden><button id="levelNode0" type="button" class="level-node"><span id="levelLabel0"></span><small id="levelStars0"></small></button><button id="levelNode1" type="button" class="level-node"><span id="levelLabel1"></span><small id="levelStars1"></small></button><button id="levelNode2" type="button" class="level-node"><span id="levelLabel2"></span><small id="levelStars2"></small></button><button id="levelNode3" type="button" class="level-node"><span id="levelLabel3"></span><small id="levelStars3"></small></button><button id="levelNode4" type="button" class="level-node"><span id="levelLabel4"></span><small id="levelStars4"></small></button><button id="levelNode5" type="button" class="level-node"><span id="levelLabel5"></span><small id="levelStars5"></small></button><button id="levelNode6" type="button" class="level-node"><span id="levelLabel6"></span><small id="levelStars6"></small></button><button id="levelNode7" type="button" class="level-node"><span id="levelLabel7"></span><small id="levelStars7"></small></button><button id="levelNode8" type="button" class="level-node"><span id="levelLabel8"></span><small id="levelStars8"></small></button><button id="levelNode9" type="button" class="level-node"><span id="levelLabel9"></span><small id="levelStars9"></small></button></div><p id="modeBrief"></p><button id="playBtn" type="button">BAŞLA</button><div id="badgeSummary" hidden></div><button id="suitBtn" type="button"></button><button id="wardrobeToggle" type="button"></button><div id="wardrobePanel" hidden><div id="wardrobeWallet"></div><div id="wardrobeControls"><button id="wardrobePrev" type="button">‹</button><div><img id="wardrobeImage" alt="" src="./assets/original/pilot0_rise.svg"><div id="wardrobeName"></div></div><button id="wardrobeNext" type="button">›</button></div><button id="wardrobeBuy" type="button"></button></div><button id="shopToggle" type="button"></button><button id="musicBtn" type="button"></button><button id="qualityBtn" type="button"></button><div id="saveStatus" hidden role="status"></div><div id="shopPanel" hidden><div id="shopWallet"></div><div id="shopControls"><button id="shopPrev" type="button">‹</button><div id="shopItem"></div><button id="shopNext" type="button">›</button></div><button id="shopBuy" type="button"></button></div>
 
       <div id="secondaryActions" class="secondary-actions" hidden>
         <button id="overlayRestartBtn" class="secondary-btn" type="button">Yeniden</button>
@@ -886,7 +886,7 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 // Local CC0 images. Vector art remains a loading/error fallback.
 const ASSET_KEYS=["pilot0_idle","pilot0_jump","pilot1_idle","pilot1_jump","pilot2_idle","pilot2_jump","pilot3_idle","pilot3_jump","pilot4_idle","pilot4_jump","grass","sand","snow","stone","cake","wood","broken","spring","springIn","coin","orb","drone","drone2","cloud","cloud2","hills","desert","forest","mushrooms"];
-const ORIGINAL_KEYS=["pilot0_rise","pilot0_fall","pilot0_boost","pilot1_rise","pilot1_fall","pilot1_boost","pilot2_rise","pilot2_fall","pilot2_boost","pilot3_rise","pilot3_fall","pilot3_boost","pilot4_rise","pilot4_fall","pilot4_boost","world0","world1","world2","world3","world4","guardian_sand","guardian_nova","pilot5_rise","pilot5_fall","pilot5_boost","pilot6_rise","pilot6_fall","pilot6_boost","enemy_hunter","enemy_orbit","platform_meadow","platform_spring","platform_phase","platform_ice","platform_stone","platform_treasure"];
+const ORIGINAL_KEYS=["pilot0_rise","pilot0_fall","pilot0_boost","pilot1_rise","pilot1_fall","pilot1_boost","pilot2_rise","pilot2_fall","pilot2_boost","pilot3_rise","pilot3_fall","pilot3_boost","pilot4_rise","pilot4_fall","pilot4_boost","world0","world1","world2","world3","world4","guardian_sand","guardian_nova","pilot5_rise","pilot5_fall","pilot5_boost","pilot6_rise","pilot6_fall","pilot6_boost","enemy_hunter","enemy_orbit","platform_meadow","platform_spring","platform_phase","platform_ice","platform_stone","platform_treasure","vista0","vista1","vista2","vista3","vista4"];
 const ART=Object.create(null);
 if(typeof window.Image==='function')for(const key of ASSET_KEYS){const img=new window.Image();img.decoding='async';ART[key]=img;img.src='./assets/kenney/'+key+'.png';}
 if(typeof window.Image==='function')for(const key of ORIGINAL_KEYS){const img=new window.Image();img.decoding='async';ART['original_'+key]=img;img.src='./assets/original/'+key+'.svg';}
@@ -1087,13 +1087,15 @@ const dom = {
 
 // Safe storage with in-memory fallback for strict cross-origin portal iframes
 const memStore = new Map();
+let cloudStorage=null,cloudSaveError=false;
+const SAVE_KEYS=['upjump-best','upjump-best-alt','upjump-mode','upjump-expedition-wins','upjump-wallet','upjump-upgrades','upjump-badges','upjump-daily-history','upjump-campaign-medals','upjump-selected-stage','upjump-owned-suits','upjump-suit','upjump-runs','upjump-sound','upjump-music','upjump-lang','upjump-bonus-best','upjump-quality'];
 const safeStorage = {
   get(key) {
-    try { return localStorage.getItem(key); } catch { return memStore.get(key) ?? null; }
+    try { return cloudStorage?cloudStorage.getItem(key):localStorage.getItem(key); } catch { cloudSaveError=!!cloudStorage;return memStore.get(key) ?? null; }
   },
   set(key, val) {
     memStore.set(key, String(val));
-    try { localStorage.setItem(key, String(val)); } catch {}
+    try { if(cloudStorage)cloudStorage.setItem(key,String(val));else localStorage.setItem(key,String(val)); } catch {cloudSaveError=!!cloudStorage;}
   },
 };
 
@@ -1119,7 +1121,7 @@ const input = { left: false, right: false, pointerX: null, boost: false };
 let lang = detectInitialLang();
 let bestScore = loadInt('upjump-best');
 let bestAlt = loadInt('upjump-best-alt');
-let selectedMode=['endless','daily'].includes(safeStorage.get('upjump-mode'))?safeStorage.get('upjump-mode'):'expedition';
+let selectedMode=['endless','daily','bonus'].includes(safeStorage.get('upjump-mode'))?safeStorage.get('upjump-mode'):'expedition';
 let expeditionWins=loadInt('upjump-expedition-wins');
 const UPGRADES=[{id:'magnet',en:'Magnet',tr:'Mıknatıs',base:45},{id:'jet',en:'Nova tank',tr:'Nova tankı',base:60},{id:'shield',en:'Shield',tr:'Kalkan',base:75}];
 let wallet=loadInt('upjump-wallet',999999),upgradeLevels={magnet:0,jet:0,shield:0},shopIndex=0,shopOpen=false,mapOpen=false;
@@ -1151,7 +1153,7 @@ let selectedStage=Math.min(loadInt('upjump-selected-stage',STAGES.length-1),unlo
 function stageName(stage){return lang==='tr'?stage.tr:stage.en;}
 function chooseStage(i){selectedStage=clamp(i,0,unlockedStage());safeStorage.set('upjump-selected-stage',selectedStage);}
 function stageFor(g){return STAGES[g.stageIndex||0];}
-function goalFor(g){return g.course==='daily'?dailyGoal(g.dailyDate):stageFor(g).alt;}
+function goalFor(g){return g.course==='bonus'?120:g.course==='daily'?dailyGoal(g.dailyDate):stageFor(g).alt;}
 function rngFor(g){g.routeSeed=(Math.imul(g.routeSeed,1664525)+1013904223)>>>0;return g.routeSeed/4294967296;}
 let ownedSuits=[];try{const saved=JSON.parse(safeStorage.get('upjump-owned-suits')||'[]');if(Array.isArray(saved))ownedSuits=[...new Set(saved.filter(i=>Number.isInteger(i)&&i>0&&i<SUITS.length))];}catch{}
 const suitOwned=i=>!!SUITS[i]&&(SUITS[i].alt<=bestAlt||ownedSuits.includes(i));
@@ -1164,7 +1166,8 @@ function purchaseSuit(i){if(!SUITS[i]||suitOwned(i)||wallet<suitPrice(i))return 
 let lastHud='',lastRail='',lastMap='',lastSaveScore=bestScore,lastSaveAlt=bestAlt;
 let totalRuns = loadInt('upjump-runs');
 let soundEnabled = safeStorage.get('upjump-sound') !== '0';
-let portalMuted = false;
+let portalMuted = false, sdkMuted=false;
+let bonusBest=loadInt('upjump-bonus-best');let quality=safeStorage.get('upjump-quality')==='low'?'low':'auto';
 let portalPending=!!(window.CrazyGames&&window.CrazyGames.SDK),crazyReady=false;
 let game, last = 0, acc = 0, rafId = 0, ambientT = 0, dpr = 1;
 let audioContext = null, noiseBuffer = null;
@@ -1172,6 +1175,17 @@ let musicEnabled=safeStorage.get('upjump-music')!=='0',musicBus=null,musicNext=0
 let lastDeathMs = 0;
 let lastSoundIcon = '', lastPauseIcon = '', lastNovaHtml = '';
 
+function reloadProgress(){
+ lang=detectInitialLang();bestScore=loadInt('upjump-best');bestAlt=loadInt('upjump-best-alt');lastSaveScore=bestScore;lastSaveAlt=bestAlt;
+ const mode=safeStorage.get('upjump-mode');selectedMode=['endless','daily','bonus'].includes(mode)?mode:'expedition';expeditionWins=loadInt('upjump-expedition-wins');wallet=loadInt('upjump-wallet',999999);
+ try{const a=JSON.parse(safeStorage.get('upjump-upgrades')||'{}');for(const u of UPGRADES)upgradeLevels[u.id]=clamp(Math.floor(Number(a[u.id])||0),0,3);}catch{}
+ try{const a=JSON.parse(safeStorage.get('upjump-campaign-medals')||'[]');medals=STAGES.map((_,i)=>clamp(Math.floor(Number(a[i])||0),0,3));}catch{}
+ try{const a=JSON.parse(safeStorage.get('upjump-owned-suits')||'[]');ownedSuits=Array.isArray(a)?[...new Set(a.filter(i=>Number.isInteger(i)&&i>0&&i<SUITS.length))]:[];}catch{}
+ try{const a=JSON.parse(safeStorage.get('upjump-badges')||'{}');badges={};for(const b of BADGES)if(a[b.id]===true)badges[b.id]=true;}catch{}
+ try{const a=JSON.parse(safeStorage.get('upjump-daily-history')||'{}');dailyHistory={};for(const [k,v] of Object.entries(a))if(/^\d{4}-\d{2}-\d{2}$/.test(k)&&v===true)dailyHistory[k]=true;}catch{}
+ selectedStage=Math.min(loadInt('upjump-selected-stage',STAGES.length-1),unlockedStage());suitIndex=loadInt('upjump-suit',SUITS.length-1);if(!suitOwned(suitIndex))suitIndex=0;wardrobeIndex=suitIndex;
+ totalRuns=loadInt('upjump-runs');soundEnabled=safeStorage.get('upjump-sound')!=='0';musicEnabled=safeStorage.get('upjump-music')!=='0';bonusBest=loadInt('upjump-bonus-best');quality=safeStorage.get('upjump-quality')==='low'?'low':'auto';
+}
 function t() { return I18N[lang] || I18N.en; }
 function reducedMotion() {
   return !!(window && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -1192,7 +1206,15 @@ const portal = (() => {
 
   async function initializeCrazy(){
     if(!portalPending)return false;
-    try{await window.CrazyGames.SDK.init();crazyReady=true;window.CrazyGames.SDK.game?.loadingStart?.();return true;}catch{return false;}finally{portalPending=false;}
+    try{
+      await window.CrazyGames.SDK.init();crazyReady=true;const sdk=window.CrazyGames.SDK;sdk.game?.loadingStart?.();
+      if(sdk.data&&typeof sdk.data.getItem==='function'&&typeof sdk.data.setItem==='function'){
+        try{const marker=sdk.data.getItem('upjump-migrated-v1');if(!marker){for(const k of SAVE_KEYS){const old=localStorage.getItem(k);if(old!==null&&sdk.data.getItem(k)===null)sdk.data.setItem(k,old);}sdk.data.setItem('upjump-migrated-v1','1');}}catch{cloudSaveError=true;}
+        cloudStorage=sdk.data;reloadProgress();
+      }
+      const settings=st=>{sdkMuted=!!st?.muteAudio;if(sdkMuted)suspendAudio();else if(soundEnabled)unlockAudio();lastHud='';syncHud();};
+      settings(sdk.game?.settings);sdk.game?.addSettingsChangeListener?.(settings);return true;
+    }catch{return false;}finally{portalPending=false;}
   }
   function loadingFinished() {
     if (readySent) return;
@@ -1252,7 +1274,7 @@ window.UpJumpPortal = portal;
 // Synthesized Web Audio Engine (Zero External Assets, Zero Copyright Risk)
 const PENTATONIC = [330, 370, 415, 494, 554, 659, 740, 831, 988];
 
-function audioActive() { return soundEnabled && !portalMuted; }
+function audioActive() { return soundEnabled && !portalMuted && !sdkMuted; }
 
 function unlockAudio() {
   if (!audioActive()) return;
@@ -1539,8 +1561,9 @@ function createGame(mode = MODES.MENU) {
   for (let i = 0; i < 6; i++) scarf.push({ x: startX + 18, y: startY + 24 + i * 4 });
 
   const g = {
-    mode, course:selectedMode, dailyDate:dailyDate(), dailyReward:0,newBadges:[],stageIndex:selectedStage, routeSeed:selectedMode==='daily'?dailySeed(dailyDate()):(selectedStage+1)*73471, medal:0, boss:null, banked:false, earned:0, rescued:false, checkpoint:0, won:false, routeBonus:0,
+    mode, course:selectedMode, dailyDate:dailyDate(), dailyReward:0,newBadges:[],stageIndex:selectedStage, routeSeed:selectedMode==='bonus'?843421:selectedMode==='daily'?dailySeed(dailyDate()):(selectedStage+1)*73471, medal:0, boss:null, banked:false, earned:0, rescued:false, checkpoint:0, won:false, routeBonus:0,
     frame: 0,
+    intro:mode===MODES.PLAY?100:0,
     camY: 0,
     genY: H,
     score: 0,
@@ -1625,6 +1648,7 @@ function spawnLayer(g, y) {
    if(preferred&&layer%2===1)type=preferred;
   }
 
+  if(g.course==='bonus')type=layer%4===3?PT.S:PT.N;
   if (type === PT.C || type === PT.P) {
     if (g.fragileStreak >= 2 || y > H - 300) {
       type = PT.N;
@@ -1636,7 +1660,7 @@ function spawnLayer(g, y) {
     g.fragileStreak = 0;
   }
 
-  const w=opening?112:safeRoute?96:type===PT.S?82:type===PT.P?76:86;
+  const w=g.course==='bonus'?112:opening?112:safeRoute?96:type===PT.S?82:type===PT.P?76:86;
   // Spread platforms from the previous center without jumping across the screen edge.
   const maxReach=opening?65:108;
   const minCenter = Math.max(18 + w / 2, g.lastPlatformCenter - maxReach);
@@ -1667,12 +1691,13 @@ function spawnLayer(g, y) {
     for(let k=0;k<4;k++)g.stars.push({x:bc+(k%2?12:-12),y:y-60-k*21,kind:k===3?'orb':'star',t:k*.7,dead:false,treasure:true});
    }
   }
-  if(y<-1100&&!safeRoute&&layer%7===4){
+  if(g.course!=='bonus'&&y<-1100&&!safeRoute&&layer%7===4){
    const side=center<200?1:-1,wx=side>0?W-98:12;
    g.winds.push({x:wx,y:y-95,w:86,h:100,dir:side>0?-1:1,phase:layer*.7});
   }
   const firstPlatform = y === H - 166;
-  const hasStar=opening||random()<(type===PT.S?.74:.48+d*.08);
+  const hasStar=g.course==='bonus'||opening||random()<(type===PT.S?.74:.48+d*.08);
+  if(g.course==='bonus'&&!opening){for(let j=0;j<2;j++)g.stars.push({x:clamp(center+(j?22:-22),18,W-18),y:y-55-j*20,kind:'star',t:j,dead:false});}
   if (hasStar) {
     g.stars.push({
       x: p.x + p.w / 2,
@@ -1683,7 +1708,7 @@ function spawnLayer(g, y) {
     });
   }
 
-  if(y < -560 && !safeRoute && !hasStar && random()<((g.course==='expedition'&&stageFor(g).style==='enemy')?.36:.08)+d*.075) {
+  if(g.course!=='bonus'&&y < -560 && !safeRoute && !hasStar && random()<((g.course==='expedition'&&stageFor(g).style==='enemy')?.36:.08)+d*.075) {
     const dx = clamp(p.x + (p.x > W / 2 ? -range(68, 120) : range(68, 120)), 22, W - 56);
     g.drones.push({
       x: dx,
@@ -1700,7 +1725,7 @@ function spawnLayer(g, y) {
 }
 
 function addBurst(g, x, y, color, n, speed = 1, kind = 'mix') {
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < Math.min(n,quality==='low'?7:24)&&g.particles.length<180; i++) {
     const ang = rand(0, TAU);
     const spd = rand(0.9, 4.0) * speed;
     const life = rand(18, 38);
@@ -1923,7 +1948,7 @@ function drawBoss(g){
 }
 function updateGame(g) {
   if (g.mode !== MODES.PLAY) return;
-  g.frame++;
+  g.frame++;g.intro=Math.max(0,g.intro-1);
   if(g.boss){updateBoss(g);return;}
 
   if (g.hitStop > 0) {
@@ -2216,6 +2241,7 @@ function updateGame(g) {
     if(g.dist>=goalFor(g)){if(bossRequired(g))beginBoss(g);else winExpedition(g);return;}
   }
   if(g.course==='daily'&&g.dist>=goalFor(g)){winDaily(g);return;}
+  if(g.course==='bonus'&&g.dist>=goalFor(g)){bonusBest=Math.max(bonusBest,g.starsCollected);safeStorage.set('upjump-bonus-best',bonusBest);winDaily(g);return;}
   const bState = getBiomeState(g.dist);
   if (bState.idx > g.biomeIdx) {
     g.biomeIdx = bState.idx;
@@ -2257,15 +2283,15 @@ function drawCloud(x, y, scale, alpha) {
 function drawBackground(g,biome){
  const themes=[['#386fa9','#72bcd5','#f9dcb3','#628dab','#315a80','#e9f7ed'],['#37738c','#79c7bc','#d8f2b0','#579b98','#2d777b','#e5f8df'],['#575a9e','#a6a2dd','#f5c6be','#7b79ba','#51578c','#f8e7f7'],['#20294f','#475b8c','#eeae9d','#526590','#263557','#b7d7f1'],['#271b4c','#724884','#f0a5c4','#72589b','#42315f','#efd0fa']];
  const a=themes[biome.idx]||themes[0],grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,a[0]);grad.addColorStop(.57,a[1]);grad.addColorStop(1,a[2]);ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
- if(artReady('original_world'+biome.idx)){
-  const offset=clamp(-g.camY*.018,0,85);ctx.save();ctx.globalAlpha=.78;sprite('original_world'+biome.idx,0,-25+offset,W,H+45);ctx.restore();
+ if(artReady('original_vista'+biome.idx)||artReady('original_world'+biome.idx)){
+  const offset=clamp(-g.camY*.018,0,85);ctx.save();ctx.globalAlpha=.78;sprite(artReady('original_vista'+biome.idx)?'original_vista'+biome.idx:'original_world'+biome.idx,0,-25+offset,W,H+45);ctx.restore();
  }
  const sunY=132+Math.sin(g.camY*.0006)*20,halo=ctx.createRadialGradient(290,sunY,28,290,sunY,100);halo.addColorStop(0,'rgba(255,240,190,.65)');halo.addColorStop(1,'rgba(255,240,190,0)');ctx.fillStyle=halo;ctx.fillRect(190,sunY-100,200,200);
  ctx.fillStyle=biome.idx<3?'#fff0c9':'#d9caff';ctx.beginPath();ctx.arc(290,sunY,biome.idx<3?42:54,0,TAU);ctx.fill();
  if(biome.idx>=3){ctx.strokeStyle='#efd9be';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(290,sunY,83,19,-.32,0,TAU);ctx.stroke();}
  const landscape=['hills','forest','mushrooms','desert','mushrooms'][biome.idx]||'hills';
  ctx.save();ctx.globalAlpha=.65;const horizon=H-230+Math.min(95,-g.camY*.045);sprite(landscape,0,horizon,W,235);ctx.restore();
- for(let layer=0;layer<3;layer++){
+ for(let layer=0;layer<(quality==='low'?1:2);layer++){
   const offset=(-g.camY*(.045+layer*.075))%(H+240);ctx.save();ctx.globalAlpha=.40+layer*.12;
   for(let i=0;i<5;i++){
    const x=((i*113+layer*47)%480)-40,y=((i*173+layer*84+offset)%(H+240))-120,w=68+((i*41+layer*19)%85),h=35+((i*23)%46);
@@ -2275,7 +2301,7 @@ function drawBackground(g,biome){
    if(layer===2){ctx.strokeStyle='rgba(230,251,255,.30)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+w*.08,y+9);ctx.lineTo(x+w*.08,y+h+13);ctx.stroke();}
   }ctx.restore();
  }
- for(let i=0;i<8;i++){
+ for(let i=0;i<(quality==='low'?3:6);i++){
   const x=((i*89+Math.sin(ambientT*.006+i)*18+430)%470)-35,y=((i*117-g.camY*.16)%(H+110)+H+110)%(H+110)-55;ctx.save();ctx.globalAlpha=biome.idx<3?.52:.20;ctx.fillStyle=a[5];ctx.beginPath();
   if(spriteFit(i%2?'cloud':'cloud2',x-55,y-24,110,49)){ctx.restore();continue;}
   ctx.ellipse(x,y,37,11,0,0,TAU);ctx.ellipse(x-15,y-6,16,14,0,0,TAU);ctx.ellipse(x+6,y-11,20,19,0,0,TAU);ctx.ellipse(x+26,y-3,17,12,0,0,TAU);ctx.fill();ctx.restore();
@@ -2295,6 +2321,7 @@ function drawPlayerSprite(pl,sx,sy,idleBob=0,ghostAlpha=1){
   const stretch=pl.boost?1.08:1+clamp(-pl.vy/180,-.045,.065);
   ctx.scale(1/stretch,stretch);
   if(pl.boost){const jet=14+pulse*6;ctx.fillStyle='#fff3a2';ctx.beginPath();ctx.moveTo(-8,15);ctx.quadraticCurveTo(-12,25,-4,31+jet);ctx.quadraticCurveTo(0,26,5,15);ctx.closePath();ctx.fill();}
+  if(!reducedMotion()&&quality!=='low'&&pl.vy<0){ctx.save();ctx.globalAlpha=ghostAlpha*.35;ctx.strokeStyle=SUITS[suitIndex].mid;ctx.lineWidth=1.6;for(let j=0;j<3;j++){ctx.beginPath();ctx.moveTo(-17+j*16,19);ctx.lineTo(-17+j*16,24+Math.max(0,-pl.vy)*.55+j);ctx.stroke();}ctx.restore();}
   spriteFit(key,-25,-29+pulse*.8,50,49);
   if(pl.boost){ctx.strokeStyle='rgba(255,230,143,.6)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,0,27+2*pulse,32,0,0,TAU);ctx.stroke();}
   ctx.restore();return;
@@ -2342,7 +2369,7 @@ function drawPlatform(p,sy){
 
 function drawGame(g) {
   const biome = getBiomeState(g.dist);
-  if(g.course==='expedition')biome.idx=stageFor(g).theme;else if(g.course==='daily')biome.idx=dailySeed(g.dailyDate)%5;
+  if(g.course==='expedition')biome.idx=stageFor(g).theme;else if(g.course==='daily')biome.idx=dailySeed(g.dailyDate)%5;else if(g.course==='bonus')biome.idx=1;
   ctx.save();
   if (g.shake > 0.2 && !reducedMotion()) {
     ctx.translate(rand(-g.shake, g.shake), rand(-g.shake, g.shake));
@@ -2632,6 +2659,7 @@ function drawGame(g) {
     ctx.fillRect(0, 0, W, H);
   }
 
+  if(g.intro>0&&g.mode===MODES.PLAY&&!g.boss){ctx.save();ctx.globalAlpha=clamp(g.intro/20,0,1);ctx.fillStyle='rgba(13,35,57,.84)';roundRect(22,H*.48,356,54,12);ctx.fill();ctx.fillStyle='#fff3bb';ctx.textAlign='center';ctx.font='800 16px system-ui';ctx.fillText(g.course==='expedition'?stageName(stageFor(g)):g.course==='bonus'?(lang==='tr'?'KRİSTAL ADASI':'CRYSTAL ISLE'):g.course==='daily'?(lang==='tr'?'GÜNLÜK ROTA':'DAILY ROUTE'):(lang==='tr'?'SONSUZ YOLCULUK':'ENDLESS FLIGHT'),W/2,H*.48+22);ctx.fillStyle='#d8f5ff';ctx.font='700 11px system-ui';ctx.fillText(g.course==='endless'?(lang==='tr'?'Yüksel ve rekorunu kır':'Climb and beat your record'):goalFor(g)+'m',W/2,H*.48+40);ctx.restore();}
   // First-run subtle movement cue
   if (g.mode === MODES.PLAY && g.hintAlpha > 0.02) {
     ctx.save();
@@ -2776,6 +2804,8 @@ function syncModeMenu(isMenu){
  a.classList.toggle('active',selectedMode==='expedition');b.classList.toggle('active',selectedMode==='endless');
  a.setAttribute('aria-pressed',String(selectedMode==='expedition'));b.setAttribute('aria-pressed',String(selectedMode==='endless'));
  const daily=document.getElementById('dailyBtn');daily.textContent=lang==='tr'?'GÜNLÜK':'DAILY';daily.classList.toggle('active',selectedMode==='daily');daily.setAttribute('aria-pressed',String(selectedMode==='daily'));
+ const bonus=document.getElementById('bonusBtn');bonus.textContent=lang==='tr'?'BONUS':'BONUS';bonus.classList.toggle('active',selectedMode==='bonus');bonus.setAttribute('aria-pressed',String(selectedMode==='bonus'));
+ const q=document.getElementById('qualityBtn');q.hidden=!isMenu&&game.mode!==MODES.PAUSE;q.textContent=(lang==='tr'?'GRAFİK ':'QUALITY ')+(quality==='low'?(lang==='tr'?'DÜŞÜK':'LOW'):(lang==='tr'?'OTOMATİK':'AUTO'));const save=document.getElementById('saveStatus');save.hidden=!isMenu;save.textContent=cloudSaveError?(lang==='tr'?'Kayıt hatası':'Save error'):cloudStorage?(lang==='tr'?'Bulut kayıt etkin':'Cloud save enabled'):(lang==='tr'?'Yerel kayıt':'Local save');
  const badgeSummary=document.getElementById('badgeSummary');badgeSummary.hidden=!isMenu||shopOpen||wardrobeOpen;badgeSummary.textContent=(lang==='tr'?'BAŞARIM ':'BADGES ')+Object.keys(badges).length+'/'+BADGES.length+' · '+BADGES.filter(b=>badges[b.id]).map(b=>lang==='tr'?b.tr:b.en).slice(-1).join('');
  const stage=STAGES[selectedStage],picker=document.getElementById('stagePicker');
  picker.hidden=!isMenu||selectedMode!=='expedition'||shopOpen||wardrobeOpen;
@@ -2785,6 +2815,7 @@ function syncModeMenu(isMenu){
  document.getElementById('stageMedals').textContent='★'.repeat(medals[selectedStage])+'☆'.repeat(3-medals[selectedStage])+' · '+medals.reduce((a,b)=>a+b,0)+'/30';
  document.getElementById('modeBrief').textContent=selectedMode==='expedition'?(lang==='tr'?'Ek yıldız: '+stage.stars+' nesne / '+stage.perfect+' kusursuz iniş (kurtarmasız)':'Extra stars: '+stage.stars+' pickups / '+stage.perfect+' perfect landings (no rescue)'):(lang==='tr'?'Sınır yok • rekorunu kır':'No limits • beat your record');
  if(selectedMode==='daily')document.getElementById('modeBrief').textContent=dailyDate()+' · '+dailyGoal(dailyDate())+'m · '+(dailyHistory[dailyDate()]?(lang==='tr'?'Ödül alındı':'Reward claimed'):(lang==='tr'?'İlk zafer +50 ◈':'First win +50 ◈'));
+ if(selectedMode==='bonus')document.getElementById('modeBrief').textContent=(lang==='tr'?'Kristal adası · 120m · Rekor: ':'Crystal isle · 120m · Best: ')+bonusBest;
  document.getElementById('runBadge').textContent=(lang==='tr'?'GÖKYÜZÜ SEFERLERİ':'SKY FRONTIERS')+' · '+expeditionWins+(lang==='tr'?' ZAFER':' WINS');
 }
 function updateOverlay() {
@@ -2838,7 +2869,7 @@ function updateOverlay() {
   } else {
     dom.overlayKicker.textContent=game.won?(lang==='tr'?'GÖREV BAŞARILI':'MISSION COMPLETE'):game.endReason==='boss'?(lang==='tr'?'MUHAFIZ GALİP':'GUARDIAN WINS'):game.endReason==='drone'?s.overDrone:s.overFall;
     dom.overlayTitle.textContent=game.won?(lang==='tr'?'ZİRVE SENİN!':'SKY CONQUERED!'):s.overTitle;
-    dom.overlayLead.textContent=game.won?(game.course==='daily'?(lang==='tr'?'GÜNLÜK ROTA TAMAM':'DAILY ROUTE COMPLETE'):('★'.repeat(game.medal)+'☆'.repeat(3-game.medal)+' · '+stageName(stageFor(game)))): (lang==='tr'?'Yıldız: ':'Stars: ')+game.starsCollected+' · '+(lang==='tr'?'Mükemmel: ':'Perfect: ')+game.perfectLandings+' · '+(lang==='tr'?'Hedef: ':'Target: ')+nextTarget(game.dist)+'m';
+    dom.overlayLead.textContent=game.won?(game.course==='bonus'?(lang==='tr'?'BONUS ROTA TAMAM':'BONUS ROUTE COMPLETE'):game.course==='daily'?(lang==='tr'?'GÜNLÜK ROTA TAMAM':'DAILY ROUTE COMPLETE'):('★'.repeat(game.medal)+'☆'.repeat(3-game.medal)+' · '+stageName(stageFor(game)))): (lang==='tr'?'Yıldız: ':'Stars: ')+game.starsCollected+' · '+(lang==='tr'?'Mükemmel: ':'Perfect: ')+game.perfectLandings+' · '+(lang==='tr'?'Hedef: ':'Target: ')+nextTarget(game.dist)+'m';
     dom.overlayLead.textContent+=' · +'+game.earned+' ◈'+(game.newBadges.length?' · '+game.newBadges.join(' / '):'');
     dom.playBtn.textContent=game.won&&game.course==='expedition'&&game.stageIndex<STAGES.length-1?(lang==='tr'?'SONRAKİ BÖLÜM':'NEXT LEVEL'):s.tryAgain;
     dom.overlayStats.innerHTML = statsHtml([
@@ -2866,6 +2897,7 @@ function fit() {
   dom.wrapper.style.height = `${Math.round(H * scale)}px`;
 
   dpr = clamp(Math.min((window && window.devicePixelRatio) || 1,Math.max(2,scale*1.6)), 1, 2.5);
+  if(quality==='low'||(typeof navigator!=='undefined'&&navigator.deviceMemory&&navigator.deviceMemory<=4))dpr=Math.min(dpr,1.25);
   const targetW = Math.round(W * dpr);
   const targetH = Math.round(H * dpr);
   if (canvas.width !== targetW || canvas.height !== targetH) {
@@ -3106,6 +3138,7 @@ bindMobileMove(dom.mobileLeftBtn, 'left');
 bindMobileMove(dom.mobileRightBtn, 'right');
 
 // UI Buttons
+document.getElementById('qualityBtn').addEventListener('click',()=>{quality=quality==='low'?'auto':'low';safeStorage.set('upjump-quality',quality);fit();updateOverlay();render();});
 document.getElementById('wardrobeToggle').addEventListener('click',()=>{if(game.mode!==MODES.MENU)return;wardrobeOpen=!wardrobeOpen;shopOpen=false;wardrobeIndex=suitIndex;syncModeMenu(true);});
 for(const [id,delta] of [['wardrobePrev',-1],['wardrobeNext',1]])document.getElementById(id).addEventListener('click',()=>{if(!wardrobeOpen||game.mode!==MODES.MENU)return;wardrobeIndex=(wardrobeIndex+delta+SUITS.length)%SUITS.length;syncWardrobe(true);});
 document.getElementById('wardrobeBuy').addEventListener('click',()=>{if(!wardrobeOpen||game.mode!==MODES.MENU)return;if(suitOwned(wardrobeIndex))equipSuit(wardrobeIndex);else purchaseSuit(wardrobeIndex);syncSuit();syncModeMenu(true);render();});
@@ -3116,7 +3149,7 @@ for(const [id,delta] of [['shopPrev',-1],['shopNext',1]])document.getElementById
 document.getElementById('shopToggle').addEventListener('click',()=>{if(game.mode!==MODES.MENU)return;shopOpen=!shopOpen;wardrobeOpen=false;syncModeMenu(true);});
 document.getElementById('shopBuy').addEventListener('click',()=>{if(game.mode!==MODES.MENU)return;buyUpgrade();syncShop(true);});
 for(const [id,delta] of [['stagePrev',-1],['stageNext',1]])document.getElementById(id).addEventListener('click',()=>{if(game.mode!==MODES.MENU)return;chooseStage(selectedStage+delta);game=createGame(MODES.MENU);lastRail='';updateOverlay();render();});
-for(const [id,mode] of [['expeditionBtn','expedition'],['endlessBtn','endless'],['dailyBtn','daily']]){
+for(const [id,mode] of [['expeditionBtn','expedition'],['endlessBtn','endless'],['dailyBtn','daily'],['bonusBtn','bonus']]){
  document.getElementById(id).addEventListener('click',()=>{selectedMode=mode;safeStorage.set('upjump-mode',mode);game=createGame(MODES.MENU);lastRail='';updateOverlay();render();});
 }
 document.getElementById('suitBtn').addEventListener('click',()=>{const available=availableSuits();equipSuit(available[(available.indexOf(suitIndex)+1)%available.length]);syncSuit();syncModeMenu(true);render();});
@@ -3136,7 +3169,7 @@ document.addEventListener('fullscreenchange', fit);
 window.render_game_to_text = () => JSON.stringify({
   mode: game.mode,
   lang,
-  portal: portal.sdkName(),portalPending,
+  portal: portal.sdkName(),portalPending,save:{cloud:!!cloudStorage,error:cloudSaveError},quality,bonusBest,
   art:{total:ASSET_KEYS.length,ready:ASSET_KEYS.filter(artReady).length,original:ORIGINAL_KEYS.length,originalReady:ORIGINAL_KEYS.filter(k=>artReady('original_'+k)).length},daily:{date:game.dailyDate,goal:dailyGoal(game.dailyDate),claimed:!!dailyHistory[game.dailyDate],reward:game.dailyReward},badges:Object.keys(badges),
   music:{enabled:musicEnabled,theme:musicTheme,tracks:Object.keys(MUSIC_TRACKS).length},economy:{wallet,upgrades:{...upgradeLevels},earned:game.earned,ownedSuits:ownedSuits.slice(),bonusRoutes:game.bonusRoutes},hazardCounts:{wind:game.winds.length,windHits:game.windHits,hunter:game.drones.filter(d=>d.kind==='hunter').length,orbit:game.drones.filter(d=>d.kind==='orbit').length},boss:game.boss?{hp:game.boss.hp,hearts:game.boss.hearts,maxHp:game.boss.maxHp}:null,
   course:{stage:game.stageIndex,goal:goalFor(game),medal:game.medal,medals:medals.slice(),unlocked:unlockedStage(),mode:game.course,checkpoint:game.checkpoint,rescued:game.rescued,won:game.won,wins:expeditionWins,risk:game.routeBonus},
@@ -3181,7 +3214,7 @@ window.startGame = startGame;
 syncStaticLabels();
 fit();
 openMenu();
-if(portalPending){portal.initializeCrazy().then(()=>{portal.loadingFinished();fit();updateOverlay();render();});}else portal.loadingFinished();
+if(portalPending){portal.initializeCrazy().then(()=>{game=createGame(MODES.MENU);lastHud='';lastRail='';syncStaticLabels();document.documentElement.lang=lang;portal.loadingFinished();fit();updateOverlay();render();});}else portal.loadingFinished();
 rafId = requestAnimationFrame(loop);
 </script>
 </body>
