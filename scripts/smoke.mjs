@@ -213,6 +213,15 @@ assert.equal(window.__test.bossHit(),false,'Normal touch cannot hit boss');
 for(let i=0;i<3;i++){window.__test.game().boss.cooldown=0;window.__test.game().boss.attackUsed=false;window.__test.player().boost=20;assert.equal(window.__test.bossHit(),true);}
 assert.equal(state().course.won,true);assert.equal(state().boss.hp,0);
 window.startGame();window.__test.game().stageIndex=9;window.__test.beginBoss();assert.equal(state().boss.maxHp,5);
-for(let i=0;i<3;i++){window.__test.game().boss.invuln=0;window.__test.bossDamage();}
+for(let i=0;i<3;i++){window.__test.game().boss.invuln=0;window.__test.player().shield=0;window.__test.bossDamage();}
 assert.equal(state().mode,'game_over');
+// Simulate a physical Nova collision and projectile collision.
+window.startGame();window.__test.game().stageIndex=4;window.__test.beginBoss();
+let boss=window.__test.game().boss,p=window.__test.player(),cam=window.__test.game().camY;
+p.x=200-p.w/2;p.y=cam+boss.y+15;p.boost=20;p.vy=-13;window.advanceTime(17);
+assert.equal(state().boss.hp,2,'Nova contact must damage guardian');
+p.shield=0;boss.invuln=0;p.boost=0;
+boss.shots.push({x:p.x+p.w/2,y:p.y-cam+p.h/2,vx:0,vy:0});
+window.advanceTime(17);assert.equal(state().boss.hearts,2,'Projectile collision must remove a heart');
+window.__test.bossDamage();assert.equal(state().boss.hearts,2,'Invulnerability prevents double damage');
 console.info('UpJump smoke test: portal compliance, DPR, i18n, WASD, Nova, audio, pause, ad hooks, and fixed-step physics passed');
