@@ -10,6 +10,8 @@ assert.ok(!/fonts\.googleapis\.com/i.test(html), 'External Google Fonts CDN shou
 
 const artKeys=JSON.parse(html.match(/const ASSET_KEYS=(\[[^;]+\]);/)[1]);
 for(const key of artKeys){const bytes=readFileSync(new URL('../public/assets/kenney/'+key+'.png',import.meta.url));assert.equal(bytes.toString('hex',0,8),'89504e470d0a1a0a','PNG signature '+key);}
+const originalKeys=JSON.parse(html.match(/const ORIGINAL_KEYS=(\[[^;]+\]);/)[1]);
+for(const key of originalKeys){const content=readFileSync(new URL('../public/assets/original/'+key+'.svg',import.meta.url),'utf8');assert.ok(content.startsWith('<svg')&&content.endsWith('</svg>'),'SVG asset '+key);}
 const match = html.match(/<script>([\s\S]*?)<\/script>/);
 assert.ok(match, 'Missing inline game script');
 for (const id of ['gameCanvas', 'novaBtn', 'mobileLeftBtn', 'mobileRightBtn', 'soundBtn', 'overlayMenuBtn', 'pauseBtn', 'langEnBtn', 'langTrBtn', 'fullscreenBtn']) {
@@ -86,7 +88,7 @@ const state = () => JSON.parse(window.render_game_to_text());
 
 // 1. Menu & High-DPI check
 assert.equal(state().mode, 'menu');
-assert.equal(state().art.ready,29);
+assert.equal(state().art.ready,29);assert.equal(state().art.originalReady,22);
 assert.ok(spriteDraws>0,'PNG render path must draw assets');
 assert.equal(element('gameCanvas').width, 800, 'High-DPI backing width should scale with devicePixelRatio');
 assert.equal(element('gameCanvas').height, 1280, 'High-DPI backing height should scale with devicePixelRatio');
@@ -224,4 +226,13 @@ p.shield=0;boss.invuln=0;p.boost=0;
 boss.shots.push({x:p.x+p.w/2,y:p.y-cam+p.h/2,vx:0,vy:0});
 window.advanceTime(17);assert.equal(state().boss.hearts,2,'Projectile collision must remove a heart');
 window.__test.bossDamage();assert.equal(state().boss.hearts,2,'Invulnerability prevents double damage');
+// Daily fixed course, once-per-day reward and persistent achievements.
+element('overlayMenuBtn').click();element('dailyBtn').click();window.startGame();
+assert.equal(state().course.mode,'daily');const dailyRoute=JSON.stringify(window.__test.game().platforms.map(p=>[p.x,p.y,p.type]));
+window.startGame();assert.equal(JSON.stringify(window.__test.game().platforms.map(p=>[p.x,p.y,p.type])),dailyRoute);
+window.__test.setAlt(state().daily.goal);window.advanceTime(17);
+assert.equal(state().course.won,true);assert.equal(state().daily.reward,50);assert.ok(state().badges.includes('daily'));
+element('playBtn').click();assert.equal(state().course.mode,'daily');
+window.__test.setAlt(state().daily.goal);window.advanceTime(17);assert.equal(state().daily.reward,0);
+assert.equal(Object.keys(JSON.parse(records.get('upjump-daily-history'))).length,1);
 console.info('UpJump smoke test: portal compliance, DPR, i18n, WASD, Nova, audio, pause, ad hooks, and fixed-step physics passed');
