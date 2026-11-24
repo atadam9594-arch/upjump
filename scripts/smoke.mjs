@@ -235,4 +235,12 @@ assert.equal(state().course.won,true);assert.equal(state().daily.reward,50);asse
 element('playBtn').click();assert.equal(state().course.mode,'daily');
 window.__test.setAlt(state().daily.goal);window.advanceTime(17);assert.equal(state().daily.reward,0);
 assert.equal(Object.keys(JSON.parse(records.get('upjump-daily-history'))).length,1);
+// R10 stage map and music preferences.
+element('overlayMenuBtn').click();element('expeditionBtn').click();element('mapToggle').click();
+assert.equal(element('campaignMap').hidden,false);assert.equal(element('levelNode9').disabled,true);
+element('levelNode9').click();assert.ok(state().course.stage<9,'Locked stage must remain inaccessible');
+element('levelNode0').click();assert.equal(state().course.stage,0);
+element('mapToggle').click();assert.equal(element('campaignMap').hidden,true);
+assert.equal(state().music.tracks,3);element('musicBtn').click();assert.equal(state().music.enabled,false);assert.equal(records.get('upjump-music'),'0');
+element('musicBtn').click();assert.equal(state().music.enabled,true);
 console.info('UpJump smoke test: portal compliance, DPR, i18n, WASD, Nova, audio, pause, ad hooks, and fixed-step physics passed');
