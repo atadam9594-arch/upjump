@@ -1065,7 +1065,7 @@ let lang = detectInitialLang();
 let bestScore = loadInt('upjump-best');
 let bestAlt = loadInt('upjump-best-alt');
 let suitIndex=loadInt('upjump-suit',SUITS.length-1);if(SUITS[suitIndex].alt>bestAlt)suitIndex=0;
-let lastRail='',lastSaveScore=bestScore,lastSaveAlt=bestAlt;
+let lastRail='',lastMap='',lastSaveScore=bestScore,lastSaveAlt=bestAlt;
 let totalRuns = loadInt('upjump-runs');
 let soundEnabled = safeStorage.get('upjump-sound') !== '0';
 let portalMuted = false;
@@ -1800,7 +1800,7 @@ function updateGame(g) {
     if (!s.dead) {
       const dx = cx - s.x, dy = cy - s.y;
       const d2 = dx * dx + dy * dy;
-      const pullR = s.kind === 'orb' ? 66 : 52;
+      const pullR = pl.boost>0 ? 108 : s.kind === 'orb' ? 66 : 52;
       if (d2 < pullR * pullR && d2 > 4) {
         const pull = pl.boost > 0 ? 0.24 : 0.12;
         s.x += dx * pull;
@@ -1969,7 +1969,7 @@ function updateGame(g) {
   const bState = getBiomeState(g.dist);
   if (bState.idx > g.biomeIdx) {
     g.biomeIdx = bState.idx;
-    setBanner(g, `${bState.name} · ${g.dist}m`);
+    if(!SUITS.some(v=>v.alt===milestone&&v.alt>g.startAlt))setBanner(g, `${bState.name} · ${g.dist}m`);
   }
 
   totalScore(g);
@@ -2512,6 +2512,8 @@ function drawPlatform(p, sy) {
   roundRect(p.x + 6, sy + 1.8, p.w - 12, 3, 1.5);
   ctx.fill();
 
+  // Precision landing zone; disappears after a platform is used.
+  if(!p.visited&&p.type!==PT.C){ctx.fillStyle='#fff1ad';roundRect(p.x+p.w*.32,sy-2,p.w*.36,3.5,1.7);ctx.fill();}
   // Platform-specific mechanical details (non-hue-only affordances)
   if (p.type === PT.N) {
     // Corner status LEDs
@@ -2562,12 +2564,27 @@ function drawPlatform(p, sy) {
 function drawGame(g) {
   const biome = getBiomeState(g.dist);
   ctx.save();
-  if (g.shake > 0.2) {
+  if (g.shake > 0.2 && !reducedMotion()) {
     ctx.translate(rand(-g.shake, g.shake), rand(-g.shake, g.shake));
   }
 
   drawBackground(g, biome);
-
+  // Physical altitude gates match the milestone shown on the HUD.
+  if(g.mode!==MODES.MENU){
+    for(const altitude of MILESTONES){
+      const y=-altitude*10+H*.42-g.camY;
+      if(y<35||y>H-35)continue;
+      const reached=g.dist>=altitude;
+      ctx.save();
+      ctx.strokeStyle=reached?'rgba(83,245,208,.55)':'rgba(255,209,102,.58)';
+      ctx.lineWidth=2;ctx.setLineDash([7,8]);ctx.beginPath();ctx.moveTo(14,y);ctx.lineTo(W-14,y);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='#102638';roundRect(W/2-34,y-12,68,24,8);ctx.fill();
+      ctx.strokeStyle=reached?'#53f5d0':'#ffd166';ctx.lineWidth=1;ctx.stroke();
+      ctx.fillStyle=reached?'#b8fff3':'#fff0a8';ctx.font='800 12px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(altitude+'m',W/2,y+4);
+      for(const x of [12,W-12]){ctx.fillStyle=reached?'#53f5d0':'#ffd166';ctx.beginPath();ctx.moveTo(x,y-6);ctx.lineTo(x+5,y);ctx.lineTo(x,y+6);ctx.lineTo(x-5,y);ctx.closePath();ctx.fill();}
+      ctx.restore();
+    }
+  }
   // Speed lines during Nova Dash or high-velocity spring launch
   if (g.mode === MODES.PLAY && (g.player.boost > 0 || g.player.vy < -17)) {
     const intensity = g.player.boost > 0 ? 0.38 : 0.16;
@@ -2878,7 +2895,7 @@ function syncProgress(){const target=nextTarget(game.dist),past=MILESTONES.filte
 document.getElementById('routeLabel').textContent=(lang==='tr'?'SONRAKİ HEDEF ':'NEXT TARGET ')+target+'m';
 document.getElementById('routeFill').style.width=clamp((game.dist-base)/(target-base)*100,0,100)+'%';
 document.getElementById('railMapTitle').textContent=lang==='tr'?'YÜKSELİŞ':'ASCENSION';document.getElementById('railGoalTitle').textContent=lang==='tr'?'SONRAKİ HEDEF':'NEXT TARGET';document.getElementById('railRecordLabel').textContent=lang==='tr'?'KİŞİSEL REKOR':'PERSONAL BEST';document.getElementById('railTarget').textContent=target+'m';document.getElementById('railBest').textContent=bestAlt+'m';document.getElementById('railNote').textContent=lang==='tr'?'Yeni yüksekliklere ulaş, pilot kıyafetlerini aç ve Nova ile rotanı hızlandır.':'Reach new heights, unlock pilot suits and accelerate with Nova.';
-document.getElementById('railMap').innerHTML=BIOMES.map(b=>'<div class="rail-line '+(game.dist>=b.alt?'reached':'')+'"><i></i><span>'+(lang==='tr'?b.nameTr:b.nameEn)+' · '+b.alt+'m</span></div>').join('');}
+const mapKey=lang+'|'+game.biomeIdx;if(mapKey!==lastMap){lastMap=mapKey;document.getElementById('railMap').innerHTML=BIOMES.map(b=>'<div class="rail-line '+(game.dist>=b.alt?'reached':'')+'"><i></i><span>'+(lang==='tr'?b.nameTr:b.nameEn)+' · '+b.alt+'m</span></div>').join('');}}
 function syncSuit(){const btn=document.getElementById('suitBtn');btn.hidden=game.mode!==MODES.MENU;const unlocked=SUITS.filter(v=>v.alt<=bestAlt).length,next=SUITS.find(v=>v.alt>bestAlt);btn.textContent=(lang==='tr'?'KIYAFET: ':'SUIT: ')+(lang==='tr'?SUITS[suitIndex].tr:SUITS[suitIndex].en)+' · '+unlocked+'/'+SUITS.length+(next?' · '+next.alt+'m':'');btn.style.borderColor=SUITS[suitIndex].mid;}
 function syncHud() {syncProgress();
   const s = t();
