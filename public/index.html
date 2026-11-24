@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="brego-release" content="upjump-sprite-edition-20261124-r6">
+<meta name="brego-release" content="upjump-sky-campaign-20261124-r7">
 <meta property="og:title" content="UpJump — Brego Games Originals">
 <meta property="og:description" content="Collect stars, climb atmospheric biomes, chain combos, and unleash Nova Dash. Play instantly on mobile and desktop.">
 <meta property="og:type" content="website">
@@ -748,7 +748,7 @@ body{background:radial-gradient(ellipse at 25% 15%,#345786 0%,#142749 43%,#090f2
 #menuGuide{display:none}#ascensionRail,#flightRail{border-color:#81b6dc55;background:linear-gradient(155deg,#254765,#142943)}
 @media(max-width:540px){#gameWrapper{border:0;border-radius:0}}
 @media(max-height:590px){#heroArt{height:46px}.logo-svg{height:36px}#modeSelect{margin-bottom:6px}.mode-choice{padding:4px 3px}#modeBrief{margin-bottom:5px}#runBadge{margin-bottom:3px}#playBtn{font-size:16px}}
-#heroArt{position:relative;overflow:hidden;border-radius:14px}#heroArt .heroSprite{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg);height:88%;width:auto;z-index:2;filter:drop-shadow(0 4px 2px #19344c66)}#heroArt.asset-ready svg g:nth-of-type(1){opacity:0}</style>
+#heroArt{position:relative;overflow:hidden;border-radius:14px}#heroArt .heroSprite{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg);height:88%;width:auto;z-index:2;filter:drop-shadow(0 4px 2px #19344c66)}#heroArt.asset-ready svg g:nth-of-type(1){opacity:0}#stagePicker{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;gap:6px;background:#173752;border:1px solid #80b7d680;border-radius:11px;padding:4px;margin:0 0 6px}#stagePicker[hidden]{display:none}#stagePicker button{background:#2a5679;color:white;border:1px solid #8ac3de;border-radius:7px;font-size:22px;min-height:30px;cursor:pointer}#stagePicker button:disabled{opacity:.35;cursor:default}#stageName{font-weight:800;font-size:12px;color:#fff}#stageMedals{font-size:11px;color:#ffdc73;letter-spacing:.08em}#heroArt{height:62px}#modeBrief{font-size:10px} @media(max-height:590px){#heroArt{display:none}#stagePicker{margin-bottom:3px;padding:2px}}</style>
 </head>
 <body>
 <aside id="ascensionRail" aria-hidden="true"><div class="rail-kicker">UPJUMP / 01</div><div class="rail-title" id="railMapTitle">ASCENSION</div><div id="railMap"></div></aside><div id="gameWrapper">
@@ -860,7 +860,7 @@ body{background:radial-gradient(ellipse at 25% 15%,#345786 0%,#142749 43%,#090f2
 
       <div id="overlayStats"></div>
 
-      <div id="modeSelect"><button id="expeditionBtn" class="mode-choice" type="button"></button><button id="endlessBtn" class="mode-choice" type="button"></button></div><p id="modeBrief"></p><button id="suitBtn" type="button"></button><button id="playBtn" type="button">BAŞLA</button>
+      <div id="modeSelect"><button id="expeditionBtn" class="mode-choice" type="button"></button><button id="endlessBtn" class="mode-choice" type="button"></button></div><div id="stagePicker" hidden><button type="button" id="stagePrev" aria-label="Previous level">‹</button><div><div id="stageName"></div><div id="stageMedals"></div></div><button type="button" id="stageNext" aria-label="Next level">›</button></div><p id="modeBrief"></p><button id="suitBtn" type="button"></button><button id="playBtn" type="button">BAŞLA</button>
 
       <div id="secondaryActions" class="secondary-actions" hidden>
         <button id="overlayRestartBtn" class="secondary-btn" type="button">Yeniden</button>
@@ -892,6 +892,18 @@ const SUITS=[
 {alt:220,en:'Aurora Rider',tr:'Aurora Yolcusu',light:'#e8d8ff',mid:'#bd8cff',dark:'#6940ac'},
 {alt:520,en:'Glacier Ace',tr:'Buz Pilotu',light:'#dbf8ff',mid:'#60c8ff',dark:'#246ea3'},
 {alt:1400,en:'Deep Nova',tr:'Derin Nova',light:'#ffd9ec',mid:'#ff73af',dark:'#a42b64'}];
+const STAGES=[
+ {en:'Green Isles',tr:'Yeşil Adalar',alt:220,theme:0,stars:8,perfect:3,style:'normal'},
+ {en:'Spring Valley',tr:'Yay Vadisi',alt:250,theme:1,stars:10,perfect:4,style:'spring'},
+ {en:'Crystal Woods',tr:'Kristal Ormanı',alt:280,theme:2,stars:12,perfect:4,style:'phase'},
+ {en:'Frost Peaks',tr:'Buz Zirveleri',alt:310,theme:3,stars:12,perfect:5,style:'moving'},
+ {en:'Sunken Sands',tr:'Kum Adaları',alt:340,theme:0,stars:15,perfect:5,style:'crumble'},
+ {en:'UFO Crossing',tr:'UFO Geçidi',alt:370,theme:3,stars:15,perfect:6,style:'enemy'},
+ {en:'Violet Rift',tr:'Mor Yarık',alt:400,theme:4,stars:18,perfect:6,style:'phase'},
+ {en:'Golden Route',tr:'Altın Rota',alt:440,theme:1,stars:20,perfect:7,style:'risk'},
+ {en:'Meteor Heights',tr:'Meteor Tepeleri',alt:490,theme:3,stars:22,perfect:8,style:'enemy'},
+ {en:'Nova Summit',tr:'Nova Zirvesi',alt:550,theme:4,stars:25,perfect:9,style:'mixed'}
+];
 const MILESTONES=[80,160,220,360,520,720,900,1150,1400];
 
 const STYLE = {
@@ -1095,6 +1107,15 @@ let bestScore = loadInt('upjump-best');
 let bestAlt = loadInt('upjump-best-alt');
 let selectedMode=safeStorage.get('upjump-mode')==='endless'?'endless':'expedition';
 let expeditionWins=loadInt('upjump-expedition-wins');
+let medals=Array(STAGES.length).fill(0);
+try{const m=JSON.parse(safeStorage.get('upjump-campaign-medals')||'[]');medals=medals.map((_,i)=>clamp(Math.floor(Number(m[i])||0),0,3));}catch{}
+function unlockedStage(){let i=0;while(i<STAGES.length-1&&medals[i]>0)i++;return i;}
+let selectedStage=Math.min(loadInt('upjump-selected-stage',STAGES.length-1),unlockedStage());
+function stageName(stage){return lang==='tr'?stage.tr:stage.en;}
+function chooseStage(i){selectedStage=clamp(i,0,unlockedStage());safeStorage.set('upjump-selected-stage',selectedStage);}
+function stageFor(g){return STAGES[g.stageIndex||0];}
+function goalFor(g){return stageFor(g).alt;}
+function rngFor(g){g.routeSeed=(Math.imul(g.routeSeed,1664525)+1013904223)>>>0;return g.routeSeed/4294967296;}
 let suitIndex=loadInt('upjump-suit',SUITS.length-1);if(SUITS[suitIndex].alt>bestAlt)suitIndex=0;
 let lastRail='',lastMap='',lastSaveScore=bestScore,lastSaveAlt=bestAlt;
 let totalRuns = loadInt('upjump-runs');
@@ -1431,7 +1452,7 @@ function createGame(mode = MODES.MENU) {
   for (let i = 0; i < 6; i++) scarf.push({ x: startX + 18, y: startY + 24 + i * 4 });
 
   const g = {
-    mode, course:selectedMode, rescued:false, checkpoint:0, won:false, routeBonus:0,
+    mode, course:selectedMode, stageIndex:selectedStage, routeSeed:(selectedStage+1)*73471, medal:0, rescued:false, checkpoint:0, won:false, routeBonus:0,
     frame: 0,
     camY: 0,
     genY: H,
@@ -1491,14 +1512,16 @@ function createGame(mode = MODES.MENU) {
     type: PT.N, vx: 0, broken: false, alpha: 1, phase: 0, visible: 1, recoil: 0, springAnim: 0,
   });
 
-  for (let y = H - 166; y > -2200; y -= 82) spawnLayer(g, y);
-  g.genY = -2200;
+  let y=H-166;
+  for(;y>-2200;y-=82)spawnLayer(g,y);
+  g.genY=y;
   return g;
 }
 
 function spawnLayer(g, y) {
   const d = clamp(-y / 4400, 0, 1.5);
-  const r = Math.random();
+  const random=()=>g.course==='expedition'?rngFor(g):Math.random(),range=(a,b)=>a+random()*(b-a);
+  const r = random();
   let type = PT.N;
 
   if (r < 0.14 + d * 0.06) type = PT.M;
@@ -1509,6 +1532,10 @@ function spawnLayer(g, y) {
   const opening=y>H-665,layer=g.layerCount++,safeRoute=opening||layer%3===0;
   if(safeRoute)type=PT.N;
   if(opening&&layer===3)type=PT.S;
+  if(!safeRoute&&g.course==='expedition'){
+   const kind=stageFor(g).style, preferred={spring:PT.S,phase:PT.P,moving:PT.M,crumble:PT.C,mixed:[PT.S,PT.M,PT.P,PT.C][layer%4]}[kind];
+   if(preferred&&layer%2===1)type=preferred;
+  }
 
   if (type === PT.C || type === PT.P) {
     if (g.fragileStreak >= 2 || y > H - 300) {
@@ -1526,19 +1553,19 @@ function spawnLayer(g, y) {
   const maxReach=opening?65:108;
   const minCenter = Math.max(18 + w / 2, g.lastPlatformCenter - maxReach);
   const maxCenter = Math.min(W - 18 - w / 2, g.lastPlatformCenter + maxReach);
-  const center=opening?[200,200,246,246,184,135,185][layer%7]:rand(minCenter,maxCenter);
+  const center=opening?[200,200,246,246,184,135,185][layer%7]:range(minCenter,maxCenter);
   const px = center - w / 2;
   g.lastPlatformCenter = center;
 
-  const moveSpeed = (1.35 + d * 0.55) * (Math.random() > 0.5 ? 1 : -1);
+  const moveSpeed = (1.35 + d * 0.55) * (random() > 0.5 ? 1 : -1);
   const p = {
     x: px, y, w, h: 15, type,
     vx: type === PT.M ? moveSpeed : 0,
-    broken: false, alpha: 1, phase: rand(0, TAU), visible: 1,
+    broken: false, alpha: 1, phase: range(0, TAU), visible: 1,
     recoil: 0, springAnim: 0, openingMarker: y === H - 166,
   };
   g.platforms.push(p);
-  if(!opening&&layer%5===2){
+  if(!opening&&layer%(g.course==='expedition'&&stageFor(g).style==='risk'?3:5)===2){
     const side=center<200?1:-1,altCenter=clamp(center+side*142,48,W-48);
     if(Math.abs(altCenter-center)>100){
       g.platforms.push({x:altCenter-28,y:y-12,w:56,h:15,type:PT.N,vx:0,broken:false,alpha:1,phase:0,visible:1,recoil:0,springAnim:0,risk:true});
@@ -1546,26 +1573,26 @@ function spawnLayer(g, y) {
     }
   }
   const firstPlatform = y === H - 166;
-  const hasStar=opening||Math.random()<(type===PT.S?.74:.48+d*.08);
+  const hasStar=opening||random()<(type===PT.S?.74:.48+d*.08);
   if (hasStar) {
     g.stars.push({
       x: p.x + p.w / 2,
-      y: y - rand(22, 32),
-      kind:opening?(layer===3?'orb':'star'):(!firstPlatform&&Math.random()<.15+d*.06?'orb':'star'),
-      t: rand(0, TAU),
+      y: y - range(22, 32),
+      kind:opening?(layer===3?'orb':'star'):(!firstPlatform&&random()<.15+d*.06?'orb':'star'),
+      t: range(0, TAU),
       dead: false,
     });
   }
 
-  if(y < -560 && !safeRoute && !hasStar && Math.random()<.08+d*.075) {
-    const dx = clamp(p.x + (p.x > W / 2 ? -rand(68, 120) : rand(68, 120)), 22, W - 56);
+  if(y < -560 && !safeRoute && !hasStar && random()<((g.course==='expedition'&&stageFor(g).style==='enemy')?.36:.08)+d*.075) {
+    const dx = clamp(p.x + (p.x > W / 2 ? -range(68, 120) : range(68, 120)), 22, W - 56);
     g.drones.push({
       x: dx,
-      y: y - rand(52, 76),
+      y: y - range(52, 76),
       w: 36,
       h: 22,
-      vx: (1.45 + d * 0.45) * (Math.random() > 0.5 ? 1 : -1),
-      phase: rand(0, TAU),
+      vx: (1.45 + d * 0.45) * (random() > 0.5 ? 1 : -1),
+      phase: range(0, TAU),
       dead: false,
     });
   }
@@ -1709,7 +1736,10 @@ function rescueExpedition(g){
 }
 function winExpedition(g){
   if(g.won||g.mode!==MODES.PLAY)return;
-  g.won=true;g.bonus+=500;expeditionWins++;safeStorage.set('upjump-expedition-wins',expeditionWins);
+  g.won=true;const stage=stageFor(g);
+  g.medal=1+Number(g.starsCollected>=stage.stars)+Number(g.perfectLandings>=stage.perfect&&!g.rescued);
+  medals[g.stageIndex]=Math.max(medals[g.stageIndex],g.medal);safeStorage.set('upjump-campaign-medals',JSON.stringify(medals));
+  g.bonus+=500+100*(g.medal-1);expeditionWins++;safeStorage.set('upjump-expedition-wins',expeditionWins);
   g.mode=MODES.OVER;g.endReason='victory';lastDeathMs=Date.now();totalScore(g);saveRecords();portal.gameplayStop();portal.happyTime();sfx.mission();updateOverlay();
 }
 function updateScarf(pl, anchorX, anchorY) {
@@ -1822,7 +1852,7 @@ function updateGame(g) {
   while (g.genY > g.camY - 140) {
     spawnLayer(g, g.genY);
     const difficultyGap=Math.min(35,g.dist/40);
-    g.genY-=rand(72,90)+difficultyGap;
+    g.genY-=(g.course==='expedition'?72+rngFor(g)*18:rand(72,90))+difficultyGap;
   }
 
   // Update platforms
@@ -2017,9 +2047,9 @@ function updateGame(g) {
   const milestone=MILESTONES.filter(m=>g.dist>=m).pop()||0;
   if(milestone>g.lastMilestone){g.lastMilestone=milestone;g.bonus+=100;addEnergy(g,20);const unlocked=SUITS.find(v=>v.alt===milestone&&v.alt>g.startAlt);setBanner(g,unlocked?(lang==='tr'?'YENİ KIYAFET!':'SUIT UNLOCKED!'):milestone+'m · +100');addRing(g,pl.x+pl.w/2,pl.y+pl.h/2,'#ffd166',60,3);sfx.mission();}
   if(g.course==='expedition'){
-    const cp=g.dist>=160?160:g.dist>=80?80:0;
+    const cp=g.dist>=goalFor(g)*.73?Math.floor(goalFor(g)*.73):g.dist>=80?80:0;
     if(cp>g.checkpoint){g.checkpoint=cp;if(!g.rescued)setBanner(g,lang==='tr'?'KURTARMA AÇILDI':'RESCUE UNLOCKED');}
-    if(g.dist>=220){winExpedition(g);return;}
+    if(g.dist>=goalFor(g)){winExpedition(g);return;}
   }
   const bState = getBiomeState(g.dist);
   if (bState.idx > g.biomeIdx) {
@@ -2113,7 +2143,7 @@ function drawPlatform(p,sy){
  const x=p.x,w=p.w,ink='#244459',palettes={normal:['#a7e3ac','#5ba880','#577b8c'],moving:['#bdeaff','#63bce5','#48789b'],spring:['#ffe6a1','#f2ac55','#a86b48'],crumble:['#f5d6a0','#d6aa70','#8c6b58'],phase:['#e4c8ff','#a58ae0','#76649e']},c=p.risk?['#fff1b0','#e9ae43','#aa7439']:palettes[p.type];
  ctx.save();ctx.globalAlpha=p.alpha;
  if(p.type===PT.P&&!solid(p)){ctx.globalAlpha=.45;ctx.strokeStyle='#fff';ctx.setLineDash([6,4]);roundRect(x,sy,w,13,5);ctx.stroke();ctx.restore();return;}
- const material=p.risk?'wood':p.type===PT.C?(p.broken?'broken':'stone'):p.type===PT.M?'snow':p.type===PT.S?'sand':p.type===PT.P?'cake':'grass';
+ const material=p.risk?'wood':p.type===PT.C?(p.broken?'broken':'stone'):p.type===PT.M?'snow':p.type===PT.S?'sand':p.type===PT.P?'cake':(game.course==='expedition'?['grass','grass','cake','snow','stone'][stageFor(game).theme]:'grass');
  if(sprite(material,x,sy,w,Math.max(20,w*.25))){
    if(!p.visited){ctx.fillStyle='#fff4b2';roundRect(x+w*.32,sy-2,w*.36,3,1.5);ctx.fill();}
    if(p.type===PT.S)spriteFit(p.springAnim>.4?'springIn':'spring',x+w/2-15,sy-21,30,25);
@@ -2136,6 +2166,7 @@ function drawPlatform(p,sy){
 
 function drawGame(g) {
   const biome = getBiomeState(g.dist);
+  if(g.course==='expedition')biome.idx=stageFor(g).theme;
   ctx.save();
   if (g.shake > 0.2 && !reducedMotion()) {
     ctx.translate(rand(-g.shake, g.shake), rand(-g.shake, g.shake));
@@ -2144,7 +2175,7 @@ function drawGame(g) {
   drawBackground(g, biome);
   // Physical altitude gates match the milestone shown on the HUD.
   if(g.mode!==MODES.MENU){
-    for(const altitude of MILESTONES){
+    for(const altitude of (g.course==='expedition'?[80,goalFor(g)]:MILESTONES)){
       const y=-altitude*10+H*.42-g.camY;
       if(y<35||y>H-35)continue;
       const reached=g.dist>=altitude;
@@ -2467,10 +2498,10 @@ function drawGame(g) {
 }
 
 function nextTarget(alt){return MILESTONES.find(v=>v>alt)||(Math.floor(alt/250)+1)*250;}
-function syncProgress(){const target=nextTarget(game.dist),past=MILESTONES.filter(v=>v<=game.dist).pop()||0,base=game.dist>=1400?Math.max(1400,target-250):past;const key=[lang,game.dist,bestAlt,game.biomeIdx,target,game.course,game.rescued,game.checkpoint].join('|');if(key===lastRail)return;lastRail=key;
-document.getElementById('routeLabel').textContent=(lang==='tr'?'HEDEF ':'TARGET ')+(game.course==='expedition'?Math.min(target,220):target)+'m'+(game.course==='expedition'?' / 220m':'')+(game.checkpoint&&!game.rescued?' · +1 ♥':'');
-document.getElementById('routeFill').style.width=clamp((game.dist-base)/(target-base)*100,0,100)+'%';
-document.getElementById('railMapTitle').textContent=lang==='tr'?'YÜKSELİŞ':'ASCENSION';document.getElementById('railGoalTitle').textContent=lang==='tr'?'SONRAKİ HEDEF':'NEXT TARGET';document.getElementById('railRecordLabel').textContent=lang==='tr'?'KİŞİSEL REKOR':'PERSONAL BEST';document.getElementById('railTarget').textContent=target+'m';document.getElementById('railBest').textContent=bestAlt+'m';document.getElementById('railNote').textContent=lang==='tr'?'Yeni yüksekliklere ulaş, pilot kıyafetlerini aç ve Nova ile rotanı hızlandır.':'Reach new heights, unlock pilot suits and accelerate with Nova.';
+function syncProgress(){const target=nextTarget(game.dist),past=MILESTONES.filter(v=>v<=game.dist).pop()||0,base=game.dist>=1400?Math.max(1400,target-250):past;const key=[lang,game.dist,bestAlt,game.biomeIdx,target,game.course,game.rescued,game.checkpoint,game.stageIndex].join('|');if(key===lastRail)return;lastRail=key;
+document.getElementById('routeLabel').textContent=(lang==='tr'?'HEDEF ':'TARGET ')+(game.course==='expedition'?Math.min(target,goalFor(game)):target)+'m'+(game.course==='expedition'?' / '+goalFor(game)+'m':'')+(game.checkpoint&&!game.rescued?' · +1 ♥':'');
+document.getElementById('routeFill').style.width=clamp(game.course==='expedition'?game.dist/goalFor(game)*100:(game.dist-base)/(target-base)*100,0,100)+'%';
+document.getElementById('railMapTitle').textContent=lang==='tr'?'YÜKSELİŞ':'ASCENSION';document.getElementById('railGoalTitle').textContent=lang==='tr'?'SONRAKİ HEDEF':'NEXT TARGET';document.getElementById('railRecordLabel').textContent=lang==='tr'?'KİŞİSEL REKOR':'PERSONAL BEST';document.getElementById('railTarget').textContent=(game.course==='expedition'?goalFor(game):target)+'m';document.getElementById('railBest').textContent=bestAlt+'m';document.getElementById('railNote').textContent=lang==='tr'?'Yeni yüksekliklere ulaş, pilot kıyafetlerini aç ve Nova ile rotanı hızlandır.':'Reach new heights, unlock pilot suits and accelerate with Nova.';
 const mapKey=lang+'|'+game.biomeIdx;if(mapKey!==lastMap){lastMap=mapKey;document.getElementById('railMap').innerHTML=BIOMES.map(b=>'<div class="rail-line '+(game.dist>=b.alt?'reached':'')+'"><i></i><span>'+(lang==='tr'?b.nameTr:b.nameEn)+' · '+b.alt+'m</span></div>').join('');}}
 function syncSuit(){const btn=document.getElementById('suitBtn');btn.hidden=game.mode!==MODES.MENU;const unlocked=SUITS.filter(v=>v.alt<=bestAlt).length,next=SUITS.find(v=>v.alt>bestAlt);btn.textContent=(lang==='tr'?'KIYAFET: ':'SUIT: ')+(lang==='tr'?SUITS[suitIndex].tr:SUITS[suitIndex].en)+' · '+unlocked+'/'+SUITS.length+(next?' · '+next.alt+'m':'');btn.style.borderColor=SUITS[suitIndex].mid;}
 function syncHud() {syncProgress();
@@ -2531,10 +2562,16 @@ function syncModeMenu(isMenu){
  hero.src='./assets/kenney/pilot'+suitIndex+'_jump.png';hero.onload=()=>{hero.hidden=false;heroArt.classList.add('asset-ready');};hero.onerror=()=>{hero.hidden=true;heroArt.classList.remove('asset-ready');};hero.hidden=!artReady('pilot'+suitIndex+'_jump');heroArt.classList.toggle('asset-ready',!hero.hidden);
  for(const id of ['heroArt','modeSelect','modeBrief','runBadge'])document.getElementById(id).hidden=!isMenu;
  const a=document.getElementById('expeditionBtn'),b=document.getElementById('endlessBtn');
- a.textContent=lang==='tr'?'SEFER · 220m':'EXPEDITION · 220m';b.textContent=lang==='tr'?'SONSUZ':'ENDLESS';
+ a.textContent=lang==='tr'?'MACERA':'CAMPAIGN';b.textContent=lang==='tr'?'SONSUZ':'ENDLESS';
  a.classList.toggle('active',selectedMode==='expedition');b.classList.toggle('active',selectedMode==='endless');
  a.setAttribute('aria-pressed',String(selectedMode==='expedition'));b.setAttribute('aria-pressed',String(selectedMode==='endless'));
- document.getElementById('modeBrief').textContent=selectedMode==='expedition'?(lang==='tr'?'220 metreye ulaş • 80m sonrası bir kurtarma':'Reach 220m • one rescue after 80m'):(lang==='tr'?'Sınır yok • rekorunu kır':'No limits • beat your record');
+ const stage=STAGES[selectedStage],picker=document.getElementById('stagePicker');
+ picker.hidden=!isMenu||selectedMode!=='expedition';
+ document.getElementById('stagePrev').disabled=selectedStage===0;
+ document.getElementById('stageNext').disabled=selectedStage>=unlockedStage();
+ document.getElementById('stageName').textContent=(selectedStage+1)+' / '+STAGES.length+' · '+stageName(stage)+' · '+stage.alt+'m';
+ document.getElementById('stageMedals').textContent='★'.repeat(medals[selectedStage])+'☆'.repeat(3-medals[selectedStage])+' · '+medals.reduce((a,b)=>a+b,0)+'/30';
+ document.getElementById('modeBrief').textContent=selectedMode==='expedition'?(lang==='tr'?'Ek yıldız: '+stage.stars+' nesne / '+stage.perfect+' kusursuz iniş (kurtarmasız)':'Extra stars: '+stage.stars+' pickups / '+stage.perfect+' perfect landings (no rescue)'):(lang==='tr'?'Sınır yok • rekorunu kır':'No limits • beat your record');
  document.getElementById('runBadge').textContent=(lang==='tr'?'GÖKYÜZÜ SEFERLERİ':'SKY FRONTIERS')+' · '+expeditionWins+(lang==='tr'?' ZAFER':' WINS');
 }
 function updateOverlay() {
@@ -2585,8 +2622,8 @@ function updateOverlay() {
   } else {
     dom.overlayKicker.textContent=game.won?(lang==='tr'?'GÖREV BAŞARILI':'MISSION COMPLETE'):game.endReason==='drone'?s.overDrone:s.overFall;
     dom.overlayTitle.textContent=game.won?(lang==='tr'?'ZİRVE SENİN!':'SKY CONQUERED!'):s.overTitle;
-    dom.overlayLead.textContent=(lang==='tr'?'Yıldız: ':'Stars: ')+game.starsCollected+' · '+(lang==='tr'?'Mükemmel: ':'Perfect: ')+game.perfectLandings+' · '+(lang==='tr'?'Hedef: ':'Target: ')+nextTarget(game.dist)+'m';
-    dom.playBtn.textContent = s.tryAgain;
+    dom.overlayLead.textContent=game.won?('★'.repeat(game.medal)+'☆'.repeat(3-game.medal)+' · '+stageName(stageFor(game))): (lang==='tr'?'Yıldız: ':'Stars: ')+game.starsCollected+' · '+(lang==='tr'?'Mükemmel: ':'Perfect: ')+game.perfectLandings+' · '+(lang==='tr'?'Hedef: ':'Target: ')+nextTarget(game.dist)+'m';
+    dom.playBtn.textContent=game.won&&game.stageIndex<STAGES.length-1?(lang==='tr'?'SONRAKİ BÖLÜM':'NEXT LEVEL'):s.tryAgain;
     dom.overlayStats.innerHTML = statsHtml([
       [game.score, s.score],
       [bestScore, s.best],
@@ -2657,6 +2694,7 @@ function openMenu() {
 
 function primaryAction() {
   if (game.mode === MODES.MENU || game.mode === MODES.OVER) {
+    if(game.won&&game.stageIndex<STAGES.length-1)chooseStage(game.stageIndex+1);
     startGame();
   } else if (game.mode === MODES.PAUSE) {
     game.mode = MODES.PLAY;
@@ -2846,10 +2884,11 @@ bindMobileMove(dom.mobileLeftBtn, 'left');
 bindMobileMove(dom.mobileRightBtn, 'right');
 
 // UI Buttons
+for(const [id,delta] of [['stagePrev',-1],['stageNext',1]])document.getElementById(id).addEventListener('click',()=>{if(game.mode!==MODES.MENU)return;chooseStage(selectedStage+delta);game=createGame(MODES.MENU);lastRail='';updateOverlay();render();});
 for(const [id,mode] of [['expeditionBtn','expedition'],['endlessBtn','endless']]){
  document.getElementById(id).addEventListener('click',()=>{selectedMode=mode;safeStorage.set('upjump-mode',mode);game.course=mode;lastRail='';updateOverlay();render();});
 }
-document.getElementById('suitBtn').addEventListener('click',()=>{const unlocked=SUITS.filter(v=>v.alt<=bestAlt).length;suitIndex=(suitIndex+1)%unlocked;safeStorage.set('upjump-suit',suitIndex);syncSuit();render();});
+document.getElementById('suitBtn').addEventListener('click',()=>{const unlocked=SUITS.filter(v=>v.alt<=bestAlt).length;suitIndex=(suitIndex+1)%unlocked;safeStorage.set('upjump-suit',suitIndex);syncSuit();syncModeMenu(true);render();});
 dom.soundBtn.addEventListener('click', toggleSound);
 if (dom.fullscreenBtn) dom.fullscreenBtn.addEventListener('click', toggleFullscreen);
 dom.overlayMenuBtn.addEventListener('click', openMenu);
@@ -2868,7 +2907,7 @@ window.render_game_to_text = () => JSON.stringify({
   lang,
   portal: portal.sdkName(),
   art:{total:ASSET_KEYS.length,ready:ASSET_KEYS.filter(artReady).length},
-  course:{mode:game.course,checkpoint:game.checkpoint,rescued:game.rescued,won:game.won,wins:expeditionWins,risk:game.routeBonus},
+  course:{stage:game.stageIndex,goal:goalFor(game),medal:game.medal,medals:medals.slice(),unlocked:unlockedStage(),mode:game.course,checkpoint:game.checkpoint,rescued:game.rescued,won:game.won,wins:expeditionWins,risk:game.routeBonus},
   progression:{target:nextTarget(game.dist),suit:suitIndex,unlocked:SUITS.filter(v=>v.alt<=bestAlt).length,perfect:game.perfectLandings,stars:game.starsCollected},
   biome: getBiomeState(game.dist).name,
   coordinates: 'origin top-left; x right; y down; screenY = worldY - camY',
