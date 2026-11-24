@@ -72,7 +72,7 @@ const storage = {
   setItem: (key, value) => records.set(key, value),
 };
 
-const source = match[1] + '\nwindow.__test = { loop, frame:()=>game.frame, energy:v=>game.energy=v, player:()=>game.player }';
+const source = match[1] + '\nwindow.__test = { loop, frame:()=>game.frame, energy:v=>game.energy=v, player:()=>game.player, game:()=>game, biome:getBiomeState, records:()=>({bestScore,bestAlt}), fit, setAlt:v=>{game.dist=v;totalScore(game)}, target:nextTarget }';
 new Function('window', 'document', 'localStorage', 'requestAnimationFrame', 'Math', 'performance', source)(
   window, document, storage, () => 1, Math, { now: () => 1000 }
 );
@@ -143,4 +143,28 @@ const ticks = window.__test.frame();
 window.__test.loop(167);
 assert.ok(window.__test.frame() - ticks >= 3, 'Low-FPS fixed timestep regressed');
 
+// Nova Ascension regression suite
+assert.equal(window.__test.biome(1400).idx,4,'Deep Nova must be reachable');
+assert.equal(window.__test.target(0),80);
+assert.equal(window.__test.target(1400),1500);
+window.startGame();
+window.advanceTime(1000);
+assert.ok(state().progression.stars>=1,'Starter route should collect a star without movement');
+const g=window.__test.game();
+const pad=g.platforms.find(p=>p.type==='normal'&&!p.broken&&p.y<400);
+g.stars=[];g.drones=[];g.hitStop=0;g.highestBounce=640;
+const bounce=()=>{g.player.x=pad.x+pad.w/2-g.player.w/2;g.player.y=pad.y-g.player.h-1;g.player.vx=0;g.player.vy=2;window.advanceTime(17);};
+bounce();
+const energy=g.energy, bonus=g.bonus;
+bounce();
+assert.equal(g.energy,energy,'Repeat bounce must not farm energy');
+assert.equal(g.bonus,bonus,'Repeat bounce must not farm points');
+window.__test.setAlt(220);
+element('pauseBtn').click();element('overlayMenuBtn').click();
+assert.equal(state().progression.unlocked,3);
+element('suitBtn').click();
+assert.equal(state().progression.suit,1);
+assert.equal(records.get('upjump-suit'),'1');
+window.innerWidth=907;window.innerHeight=510;window.__test.fit();
+assert.ok(parseInt(element('gameWrapper').style.height)<=510);
 console.info('UpJump smoke test: portal compliance, DPR, i18n, WASD, Nova, audio, pause, ad hooks, and fixed-step physics passed');
