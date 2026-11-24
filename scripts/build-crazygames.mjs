@@ -10,4 +10,3 @@ await writeFile(new URL('index.html', output), html
   .replace(marker, '/* CRAZYGAMES_BUILD */ true')
   .replace(/\s*<button id="fullscreenBtn"[\s\S]*?<\/button>/, ''));
 console.log('CrazyGames Basic Launch build ready in dist/crazygames/');
-HEAD^:scripts/build-crazygames.mjs
