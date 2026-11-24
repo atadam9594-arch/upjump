@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
-const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+const html = readFileSync(process.argv[2] || new URL('../public/index.html', import.meta.url), 'utf8');
+const isPortalBuild = html.includes('/* CRAZYGAMES_BUILD */ true');
 const headers = readFileSync(new URL('../public/_headers', import.meta.url), 'utf8');
 
 // Portal compliance checks
@@ -10,9 +11,11 @@ assert.ok(!/fonts\.googleapis\.com/i.test(html), 'External Google Fonts CDN shou
 
 const match = html.match(/<script>([\s\S]*?)<\/script>/);
 assert.ok(match, 'Missing inline game script');
-for (const id of ['gameCanvas', 'novaBtn', 'mobileLeftBtn', 'mobileRightBtn', 'soundBtn', 'overlayMenuBtn', 'pauseBtn', 'langEnBtn', 'langTrBtn', 'fullscreenBtn']) {
+for (const id of ['gameCanvas', 'novaBtn', 'mobileLeftBtn', 'mobileRightBtn', 'soundBtn', 'overlayMenuBtn', 'pauseBtn', 'langEnBtn', 'langTrBtn', 'skipCoach']) {
   assert.ok(html.includes('id="' + id + '"'), 'Missing element: ' + id);
 }
+
+assert.equal(html.includes('id="fullscreenBtn"'), !isPortalBuild);
 
 const listeners = new Map();
 const elements = new Map();
@@ -126,7 +129,7 @@ document.hidden = true;
 pageEvents.get('visibilitychange')();
 assert.equal(state().mode, 'paused');
 document.hidden = false;
-pageEvents.get('keydown')({ key: 'Escape', repeat: false, preventDefault() {} });
+pageEvents.get('keydown')({ key: isPortalBuild ? 'p' : 'Escape', repeat: false, preventDefault() {} });
 assert.equal(state().mode, 'playing');
 
 // 8. Portal SDK ad-break pause/resume bridge
@@ -144,3 +147,62 @@ window.__test.loop(167);
 assert.ok(window.__test.frame() - ticks >= 3, 'Low-FPS fixed timestep regressed');
 
 console.info('UpJump smoke test: portal compliance, DPR, i18n, WASD, Nova, audio, pause, ad hooks, and fixed-step physics passed');
+
+// Fresh players fill Nova with actual pickups and clear the practice drone.
+window.startGame();
+assert.equal(state().hud.coaching, true);
+assert.equal(element('missionWrap').hidden, true);
+pageEvents.get('keydown')({ key: 'ArrowRight', repeat: false, preventDefault() {} });
+window.advanceTime(100);
+pageEvents.get('keyup')({ key: 'ArrowRight' });
+for (let i = 0; i < 100 && state().hud.energy < 100; i++) window.advanceTime(17);
+assert.equal(state().hud.energy, 100, 'The opening star route must charge Nova');
+assert.ok(state().hazards.length, 'A practice drone should appear once Nova is ready');
+pageEvents.get('keydown')({ key: ' ', code: 'Space', repeat: false, preventDefault() {} });
+window.advanceTime(200);
+assert.equal(state().hud.dronesSmashed, 1);
+assert.equal(state().hud.coaching, false);
+assert.equal(element('missionWrap').hidden, false);
+assert.equal(records.get('upjump-coach-v1'), '1');
+for (let i = 0; i < 3; i++) {
+  window.startGame();
+  const initialBest = state().hud.best;
+  assert.equal(state().hud.coaching, false);
+  assert.equal(state().hud.energy, 0);
+  assert.equal(state().hud.combo, 0);
+  window.__test.player().y = 900;
+  window.__test.player().vy = 1;
+  window.advanceTime(17);
+  assert.equal(state().mode, 'game_over');
+  assert.ok(state().hud.best >= initialBest);
+  assert.ok(/m kaldı/.test(element('overlayLead').textContent));
+  element('playBtn').click();
+  assert.equal(state().mode, 'playing');
+}
+records.delete('upjump-coach-v1');
+window.startGame();
+element('skipCoach').click();
+assert.equal(state().hud.coaching, false);
+assert.equal(records.get('upjump-coach-v1'), '1');
+
+console.info('UpJump first-run pickup route, drone collision, skip persistence, and three replays passed');
+
+// Portal frame dimensions and touch controller state.
+window.innerWidth = 907;
+window.innerHeight = 510;
+window.devicePixelRatio = 1;
+winEvents.get('resize')();
+assert.equal(element('gameWrapper').style.height, '490px');
+assert.equal(element('gameCanvas').width, 400);
+window.innerWidth = 320;
+window.innerHeight = 568;
+winEvents.get('resize')();
+assert.equal(element('gameWrapper').style.width, '320px');
+const press = { pointerId: 1, preventDefault() {}, stopPropagation() {} };
+listeners.get('mobileLeftBtn:pointerdown')(press);
+window.advanceTime(100);
+assert.ok(state().player.vx < 0);
+listeners.get('mobileLeftBtn:lostpointercapture')(press);
+window.advanceTime(300);
+assert.ok(Math.abs(state().player.vx) < 0.1);
+console.info('UpJump 907 × 510 / DPR 1, 320px portrait fit, and touch release passed');

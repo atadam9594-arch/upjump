@@ -9,6 +9,7 @@
     "start": "node server.js",
     "build": "node scripts/build-pages.mjs",
     "lint": "node scripts/smoke.mjs",
-    "test": "node scripts/smoke.mjs"
+    "test": "node scripts/smoke.mjs",
+    "build:crazygames": "node scripts/build-crazygames.mjs"
   }
 }
