@@ -1776,11 +1776,11 @@ function beginBoss(g){
  g.boss={hp,maxHp:hp,hearts:3,x:W/2,y:151,frame:0,shots:[],cooldown:0,invuln:0,attackUsed:false};
  g.dist=Math.max(g.dist,goalFor(g));g.camY=-goalFor(g)*10;
  g.platforms=[];g.stars=[];g.drones=[];g.particles=[];g.rings=[];g.ghosts=[];g.debris=[];g.texts=[];
- const p=g.player;p.x=W/2-p.w/2;p.y=g.camY+H-120;p.vy=-7;p.vx=0;p.boost=0;p.shield=0;p.trail=[];g.energy=100;g.energyWasFull=true;
+ const p=g.player;p.x=W/2-p.w/2;p.y=g.camY+H-120;p.vy=-7;p.vx=0;p.boost=0;p.shield=0;p.trail=[];g.energy=100;g.energyWasFull=true;g.hintAlpha=0;
  resetControls();setBanner(g,lang==='tr'?'MUHAFIZ • NOVA İLE VUR!':'GUARDIAN • HIT WITH NOVA!');
 }
 function bossDamage(g){
- const b=g.boss;if(!b||b.invuln>0||g.player.boost>0)return false;
+ const b=g.boss;if(!b||b.invuln>0||g.player.boost>0||g.player.shield>0)return false;
  b.hearts--;b.invuln=100;g.player.shield=95;addShake(g,5);sfx.crumble();
  if(b.hearts<=0){triggerGameOver(g,'boss');return true;}return false;
 }
@@ -2508,8 +2508,8 @@ function drawGame(g) {
   const idleBob = g.mode === MODES.MENU ? -Math.abs(Math.sin(ambientT * 0.065)) * 28 : 0;
   if (g.mode === MODES.MENU) updateScarf(pl, sx - pl.face * 7, pl.y + 25);
   drawPlayerSprite(pl, sx, sy, idleBob, 1);
-  if (sx < 26) drawPlayerSprite(pl, sx + W, sy, idleBob, 1);
-  if (sx > W - 26) drawPlayerSprite(pl, sx - W, sy, idleBob, 1);
+  if (!g.boss&&sx < 26) drawPlayerSprite(pl, sx + W, sy, idleBob, 1);
+  if (!g.boss&&sx > W - 26) drawPlayerSprite(pl, sx - W, sy, idleBob, 1);
 
   // Subtle Nova-Ready peripheral frame glow
   if (g.mode === MODES.PLAY && g.energy >= 100 && !reducedMotion()) {
@@ -2590,7 +2590,7 @@ function syncHud() {syncProgress();
 
   dom.mission.textContent = game.boss?(lang==='tr'?'NOVA ile muhafızı vur':'Hit guardian with NOVA'):`${missionText(game.mission)} (${game.mission.progress}/${game.mission.target})`;
   if (dom.missionBar) {
-    dom.missionBar.style.width = `${Math.round((game.mission.progress / game.mission.target) * 100)}%`;
+    dom.missionBar.style.width = `${Math.round(game.boss?(1-game.boss.hp/game.boss.maxHp)*100:(game.mission.progress / game.mission.target)*100)}%`;
   }
   if (dom.missionWrap) dom.missionWrap.hidden = game.mode === MODES.MENU;
 
@@ -2637,13 +2637,13 @@ function syncModeMenu(isMenu){
  syncShop(isMenu);
  const hero=document.getElementById('heroSprite'),heroArt=document.getElementById('heroArt');
  hero.src='./assets/kenney/pilot'+suitIndex+'_jump.png';hero.onload=()=>{hero.hidden=false;heroArt.classList.add('asset-ready');};hero.onerror=()=>{hero.hidden=true;heroArt.classList.remove('asset-ready');};hero.hidden=!artReady('pilot'+suitIndex+'_jump');heroArt.classList.toggle('asset-ready',!hero.hidden);
- for(const id of ['heroArt','modeSelect','modeBrief','runBadge'])document.getElementById(id).hidden=!isMenu;
+ for(const id of ['heroArt','modeSelect','modeBrief','runBadge'])document.getElementById(id).hidden=!isMenu||shopOpen;
  const a=document.getElementById('expeditionBtn'),b=document.getElementById('endlessBtn');
  a.textContent=lang==='tr'?'MACERA':'CAMPAIGN';b.textContent=lang==='tr'?'SONSUZ':'ENDLESS';
  a.classList.toggle('active',selectedMode==='expedition');b.classList.toggle('active',selectedMode==='endless');
  a.setAttribute('aria-pressed',String(selectedMode==='expedition'));b.setAttribute('aria-pressed',String(selectedMode==='endless'));
  const stage=STAGES[selectedStage],picker=document.getElementById('stagePicker');
- picker.hidden=!isMenu||selectedMode!=='expedition';
+ picker.hidden=!isMenu||selectedMode!=='expedition'||shopOpen;
  document.getElementById('stagePrev').disabled=selectedStage===0;
  document.getElementById('stageNext').disabled=selectedStage>=unlockedStage();
  document.getElementById('stageName').textContent=(selectedStage+1)+' / '+STAGES.length+' · '+stageName(stage)+' · '+stage.alt+'m'+([4,9].includes(selectedStage)?' · BOSS':'');
@@ -2697,7 +2697,7 @@ function updateOverlay() {
       [`x${game.combo}`, s.combo],
     ]);
   } else {
-    dom.overlayKicker.textContent=game.won?(lang==='tr'?'GÖREV BAŞARILI':'MISSION COMPLETE'):game.endReason==='drone'?s.overDrone:s.overFall;
+    dom.overlayKicker.textContent=game.won?(lang==='tr'?'GÖREV BAŞARILI':'MISSION COMPLETE'):game.endReason==='boss'?(lang==='tr'?'MUHAFIZ GALİP':'GUARDIAN WINS'):game.endReason==='drone'?s.overDrone:s.overFall;
     dom.overlayTitle.textContent=game.won?(lang==='tr'?'ZİRVE SENİN!':'SKY CONQUERED!'):s.overTitle;
     dom.overlayLead.textContent=game.won?('★'.repeat(game.medal)+'☆'.repeat(3-game.medal)+' · '+stageName(stageFor(game))): (lang==='tr'?'Yıldız: ':'Stars: ')+game.starsCollected+' · '+(lang==='tr'?'Mükemmel: ':'Perfect: ')+game.perfectLandings+' · '+(lang==='tr'?'Hedef: ':'Target: ')+nextTarget(game.dist)+'m';
     dom.overlayLead.textContent+=' · +'+game.earned+' ◈';
@@ -2963,7 +2963,7 @@ bindMobileMove(dom.mobileRightBtn, 'right');
 
 // UI Buttons
 for(const [id,delta] of [['shopPrev',-1],['shopNext',1]])document.getElementById(id).addEventListener('click',()=>{if(game.mode!==MODES.MENU)return;shopIndex=(shopIndex+delta+UPGRADES.length)%UPGRADES.length;syncShop(true);});
-document.getElementById('shopToggle').addEventListener('click',()=>{if(game.mode!==MODES.MENU)return;shopOpen=!shopOpen;syncShop(true);});
+document.getElementById('shopToggle').addEventListener('click',()=>{if(game.mode!==MODES.MENU)return;shopOpen=!shopOpen;syncModeMenu(true);});
 document.getElementById('shopBuy').addEventListener('click',()=>{if(game.mode!==MODES.MENU)return;buyUpgrade();syncShop(true);});
 for(const [id,delta] of [['stagePrev',-1],['stageNext',1]])document.getElementById(id).addEventListener('click',()=>{if(game.mode!==MODES.MENU)return;chooseStage(selectedStage+delta);game=createGame(MODES.MENU);lastRail='';updateOverlay();render();});
 for(const [id,mode] of [['expeditionBtn','expedition'],['endlessBtn','endless']]){
