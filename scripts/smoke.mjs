@@ -72,7 +72,7 @@ const storage = {
   setItem: (key, value) => records.set(key, value),
 };
 
-const source = match[1] + '\nwindow.__test = { loop, frame:()=>game.frame, energy:v=>game.energy=v, player:()=>game.player, game:()=>game, biome:getBiomeState, records:()=>({bestScore,bestAlt}), fit, setAlt:v=>{game.dist=v;totalScore(game)}, target:nextTarget }';
+const source = match[1] + '\nwindow.__test = { loop, frame:()=>game.frame, energy:v=>game.energy=v, player:()=>game.player, game:()=>game, biome:getBiomeState, records:()=>({bestScore,bestAlt}), fit, setAlt:v=>{game.dist=v;totalScore(game)}, target:nextTarget, rescue:()=>rescueExpedition(game), win:()=>winExpedition(game) }';
 new Function('window', 'document', 'localStorage', 'requestAnimationFrame', 'Math', 'performance', source)(
   window, document, storage, () => 1, Math, { now: () => 1000 }
 );
@@ -167,4 +167,21 @@ assert.equal(state().progression.suit,1);
 assert.equal(records.get('upjump-suit'),'1');
 window.innerWidth=907;window.innerHeight=510;window.__test.fit();
 assert.ok(parseInt(element('gameWrapper').style.height)<=510);
+// Sky Frontiers modes and rescue regression checks
+element('expeditionBtn').click();window.startGame();
+assert.equal(state().course.mode,'expedition');
+assert.equal(window.__test.rescue(),false);
+window.__test.game().checkpoint=80;
+assert.equal(window.__test.rescue(),true);
+assert.equal(window.__test.rescue(),false);
+assert.equal(state().course.rescued,true);
+window.__test.setAlt(220);window.advanceTime(17);
+assert.equal(state().course.won,true);
+assert.equal(state().mode,'game_over');
+assert.equal(records.get('upjump-expedition-wins'),'1');
+window.__test.win();assert.equal(records.get('upjump-expedition-wins'),'1');
+element('overlayMenuBtn').click();element('endlessBtn').click();window.startGame();
+window.__test.setAlt(220);window.advanceTime(17);
+assert.equal(state().mode,'playing');assert.equal(state().course.mode,'endless');
+assert.ok(window.__test.game().platforms.some(p=>p.risk),'Risk route must be generated');
 console.info('UpJump smoke test: portal compliance, DPR, i18n, WASD, Nova, audio, pause, ad hooks, and fixed-step physics passed');
