@@ -50,3 +50,9 @@ node scripts/smoke.mjs
 ## Release
 
 Cloudflare Pages uses `wrangler.jsonc` with `pages_build_output_dir: "./public"`. For portal ZIP submissions (itch.io, Poki, CrazyGames, GameDistribution), package `public/index.html` directly at the ZIP root.
+
+## CrazyGames Basic Launch build
+
+Run `npm run build:crazygames` and zip `dist/crazygames/index.html` at the archive root. This build omits the in-game fullscreen control and leaves Escape available to the host. It uses local progress and contains no advertising integration. The Cloudflare Pages build continues to use `public/`.
+
+Run `npm test` and `node scripts/smoke.mjs dist/crazygames/index.html` to exercise the standalone and portal variants.
