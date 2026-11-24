@@ -88,7 +88,7 @@ const state = () => JSON.parse(window.render_game_to_text());
 
 // 1. Menu & High-DPI check
 assert.equal(state().mode, 'menu');
-assert.equal(state().art.ready,29);assert.equal(state().art.originalReady,30);
+assert.equal(state().art.ready,29);assert.equal(state().art.originalReady,36);
 assert.ok(spriteDraws>0,'PNG render path must draw assets');
 assert.equal(element('gameCanvas').width, 800, 'High-DPI backing width should scale with devicePixelRatio');
 assert.equal(element('gameCanvas').height, 1280, 'High-DPI backing height should scale with devicePixelRatio');
@@ -256,4 +256,11 @@ window.advanceTime(17);assert.ok(state().hazardCounts.windHits>0,'Wind must affe
 const hunter={x:wgame.player.x-100,y:wgame.player.y,w:36,h:22,vx:0,phase:0,kind:'hunter',dead:false};wgame.drones=[hunter];window.advanceTime(17);assert.ok(hunter.vx>0,'Hunter must steer toward player');
 const orbit={x:30,y:wgame.player.y,w:36,h:22,vx:0,phase:0,homeY:wgame.player.y,kind:'orbit',dead:false};wgame.drones=[orbit];window.advanceTime(17);assert.ok(orbit.y!==orbit.homeY,'Orbiter must change altitude');
 wgame.winds=[];wgame.drones=[];const treasure={x:170,y:400,w:60,h:15,type:'normal',vx:0,broken:false,alpha:1,phase:0,visible:1,recoil:0,springAnim:0,risk:true,treasure:true};wgame.platforms=[treasure];wgame.highestBounce=640;wgame.player.x=200-wgame.player.w/2;wgame.player.y=treasure.y-wgame.player.h-1;wgame.player.vx=0;wgame.player.vy=2;window.advanceTime(17);assert.equal(state().economy.bonusRoutes,1);
+// R12 viewport and HUD regressions.
+window.innerWidth=1100;window.innerHeight=1000;window.__test.fit();
+assert.ok(parseInt(element('gameWrapper').style.width)+2*(176+24)<=1100,'Sidebars must not overflow desktop viewport');
+window.innerWidth=320;window.innerHeight=420;window.__test.fit();
+assert.ok(parseInt(element('gameWrapper').style.height)<=420);assert.ok(parseInt(element('gameWrapper').style.width)<=320);
+assert.equal(state().portalPending,false);
+assert.ok(html.indexOf('id="playBtn"')<html.indexOf('id="wardrobeToggle"'),'Primary play action precedes optional customization');
 console.info('UpJump smoke test: portal compliance, DPR, i18n, WASD, Nova, audio, pause, ad hooks, and fixed-step physics passed');

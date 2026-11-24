@@ -1,0 +1,3 @@
+# CrazyGames R12 candidate
+
+Run `npm test` then `node scripts/build-crazygames.mjs` from the repository root. The resulting `dist/upjump-crazygames.zip` contains index.html at ZIP root and local art. It adds the official v3 script only in the portal build. The standalone Pages build is unchanged. SDK init is awaited before play, loading/gameplay events are connected, no ads are enabled. Full Launch data module integration, portal Preview testing, cover PNG/JPEG conversion and real-device QA are not yet verified. Basic Launch does not require monetization. Do not submit until the Preview test passes.
